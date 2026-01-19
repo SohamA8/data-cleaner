@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Excel Data Cleaner</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            margin: 0;
+            background: linear-gradient(135deg, #eef2f7, #dfe7fd);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .card {
+            background: #ffffff;
+            width: 430px;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+        }
+
+        .title {
+            text-align: center;
+            font-size: 22px;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 6px;
+        }
+
+        .subtitle {
+            text-align: center;
+            font-size: 14px;
+            color: #718096;
+            margin-bottom: 25px;
+        }
+
+        /* Drag & Drop Box */
+        .drop-zone {
+            border: 2px dashed #cbd5e0;
+            border-radius: 14px;
+            padding: 30px 20px;
+            text-align: center;
+            background: #f8fafc;
+            color: #4a5568;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .drop-zone.dragover {
+            background: #ebf4ff;
+            border-color: #5a67d8;
+        }
+
+        .drop-zone strong {
+            color: #5a67d8;
+        }
+
+        .file-name {
+            margin-top: 10px;
+            font-size: 13px;
+            color: #2d3748;
+            font-weight: 600;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .checkbox-group {
+            margin-top: 20px;
+        }
+
+        .checkbox {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .checkbox input {
+            width: 18px;
+            height: 18px;
+            margin-right: 10px;
+            accent-color: #5a67d8;
+        }
+
+        .checkbox label {
+            font-weight: 500;
+            color: #2d3748;
+            cursor: pointer;
+        }
+
+        button {
+            width: 100%;
+            margin-top: 22px;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea, #5a67d8);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 20px rgba(90, 103, 216, 0.4);
+        }
+
+        .footer {
+            margin-top: 18px;
+            text-align: center;
+            font-size: 12px;
+            color: #a0aec0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <div class="title">Excel Data Cleaner</div>
+    <div class="subtitle">Drag, drop & clean your data instantly</div>
+
+    <form action="/clean" method="post" enctype="multipart/form-data">
+
+        <!-- Drag & Drop -->
+        <div class="drop-zone" id="dropZone">
+            <p>📂 Drag & drop your file here<br>or <strong>click to browse</strong></p>
+            <div class="file-name" id="fileName"></div>
+        </div>
+
+        <input type="file" name="file" id="fileInput" required>
+
+        <div class="checkbox-group">
+            <div class="checkbox">
+                <input type="checkbox" name="trim_spaces" value="true" id="trim">
+                <label for="trim">Trim extra spaces (inside & outside)</label>
+            </div>
+
+            <div class="checkbox">
+                <input type="checkbox" name="remove_duplicates" value="true" id="dup">
+                <label for="dup">Remove duplicate rows</label>
+            </div>
+
+            <div class="checkbox">
+                <input type="checkbox" name="remove_blank_rows" value="true" id="blank">
+                <label for="blank">Remove blank rows</label>
+            </div>
+        </div>
+
+        <button type="submit">Clean & Download</button>
+    </form>
+
+    <div class="footer">
+        Supports .csv, .xlsx & .xls
+    </div>
+</div>
+
+<script>
+    const dropZone = document.getElementById("dropZone");
+    const fileInput = document.getElementById("fileInput");
+    const fileName = document.getElementById("fileName");
+
+    dropZone.addEventListener("click", () => fileInput.click());
+
+    fileInput.addEventListener("change", () => {
+        if (fileInput.files.length > 0) {
+            fileName.textContent = fileInput.files[0].name;
+        }
+    });
+
+    dropZone.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        dropZone.classList.add("dragover");
+    });
+
+    dropZone.addEventListener("dragleave", () => {
+        dropZone.classList.remove("dragover");
+    });
+
+    dropZone.addEventListener("drop", (e) => {
+        e.preventDefault();
+        dropZone.classList.remove("dragover");
+        fileInput.files = e.dataTransfer.files;
+        fileName.textContent = e.dataTransfer.files[0].name;
+    });
+</script>
+
+</body>
+</html>
