@@ -1,389 +1,277 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
+<meta charset="UTF-8" />
 <title>Excel Data Cleaner</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
+/* ---------- THEME VARIABLES ---------- */
 :root {
-    --bg-main: #f8fafc;
-    --bg-card: #ffffff;
-    --text-main: #1f2937;
-    --text-muted: #6b7280;
-    --accent: #4f46e5;
-    --border: #e5e7eb;
-    --drop-bg: #eef2ff;
+  --bg-light: linear-gradient(135deg, #e0f2ff, #fdfcff);
+  --bg-dark: linear-gradient(135deg, #0f172a, #020617);
+  --card-light: rgba(255,255,255,0.85);
+  --card-dark: rgba(15,23,42,0.85);
+  --text-light: #0f172a;
+  --text-dark: #e5e7eb;
+  --accent: #38bdf8;
 }
 
-body.dark {
-    --bg-main: #0f172a;
-    --bg-card: #020617;
-    --text-main: #e5e7eb;
-    --text-muted: #9ca3af;
-    --accent: #818cf8;
-    --border: #1e293b;
-    --drop-bg: #020617;
-}
-
-* {
-    box-sizing: border-box;
-    font-family: "Segoe UI", system-ui, sans-serif;
-}
-
-/* Animated Gradient Background */
+/* ---------- BASE ---------- */
 body {
-    margin: 0;
-    min-height: 100vh;
-    padding: 40px;
-    display: flex;
-    justify-content: center;
-    color: var(--text-main);
-
-    background: linear-gradient(135deg, #eef2ff, #fdf2f8, #ecfeff);
-    background-size: 300% 300%;
-    animation: gradientMove 12s ease infinite;
+  margin: 0;
+  font-family: "Inter", system-ui, sans-serif;
+  background: var(--bg-light);
+  color: var(--text-light);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: 0.5s ease;
 }
 
 body.dark {
-    background: linear-gradient(135deg, #020617, #0f172a, #020617);
-    background-size: 300% 300%;
-    animation: gradientMove 14s ease infinite;
-}
-
-@keyframes gradientMove {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
+  background: var(--bg-dark);
+  color: var(--text-dark);
 }
 
 .container {
-    width: 100%;
-    max-width: 1100px;
+  width: 95%;
+  max-width: 1200px;
+  background: var(--card-light);
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 25px 60px rgba(0,0,0,0.15);
+  transition: 0.5s ease;
 }
 
-.card {
-    background: linear-gradient(
-        180deg,
-        rgba(255,255,255,0.85),
-        rgba(255,255,255,0.95)
-    );
-    backdrop-filter: blur(14px);
-    padding: 45px;
-    border-radius: 22px;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.12);
-    border: 1px solid rgba(255,255,255,0.3);
+body.dark .container {
+  background: var(--card-dark);
 }
 
-body.dark .card {
-    background: linear-gradient(
-        180deg,
-        rgba(2,6,23,0.85),
-        rgba(2,6,23,0.95)
-    );
-    border: 1px solid rgba(255,255,255,0.08);
-}
-
-/* Header */
+/* ---------- HEADER ---------- */
 .header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.title-wrap {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.logo {
-    width: 28px;
-    height: 28px;
-    stroke: var(--accent);
-    stroke-width: 1.8;
-    fill: rgba(79,70,229,0.08);
-    border-radius: 6px;
-}
-
-body.dark .logo {
-    fill: rgba(129,140,248,0.15);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .title {
-    font-size: 26px;
-    font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 26px;
+  font-weight: 700;
 }
 
-.subtitle {
-    font-size: 14px;
-    color: var(--text-muted);
+/* ---------- BULB ---------- */
+.bulb-wrapper {
+  position: relative;
+  width: 60px;
+  height: 90px;
+  cursor: pointer;
 }
 
-.toggle {
-    cursor: pointer;
-    padding: 8px 14px;
-    border-radius: 999px;
-    background: var(--drop-bg);
+.bulb {
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at 50% 35%, #fff 0%, #ffe066 45%, #facc15 65%, #ca8a04 100%);
+  border-radius: 50% 50% 45% 45%;
+  box-shadow: 0 0 30px rgba(250,204,21,0.8);
+  transition: 0.4s ease;
 }
 
-/* Upload */
-.drop-zone {
-    margin-top: 30px;
-    border: 2px dashed var(--accent);
-    border-radius: 18px;
-    padding: 45px;
-    text-align: center;
-    cursor: pointer;
+.bulb::after {
+  content: "";
+  position: absolute;
+  bottom: -18px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 28px;
+  height: 18px;
+  background: #555;
+  border-radius: 4px;
 }
 
-.drop-zone.dragover {
-    background: rgba(79,70,229,0.15);
+/* Broken bulb */
+.bulb.broken {
+  background: radial-gradient(circle at 50% 35%, #aaa, #444);
+  box-shadow: none;
+  animation: shake 0.4s linear;
 }
 
-.file-name {
-    margin-top: 10px;
-    font-weight: 600;
+@keyframes shake {
+  0%,100% { transform: rotate(0deg); }
+  25% { transform: rotate(4deg); }
+  50% { transform: rotate(-4deg); }
+  75% { transform: rotate(2deg); }
 }
 
-input[type=file] {
-    display: none;
+/* Repair ring */
+.repair-ring {
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  border: 4px solid transparent;
+  border-top: 4px solid var(--accent);
+  opacity: 0;
 }
 
-.options {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 15px;
-    margin-top: 25px;
+.repairing .repair-ring {
+  opacity: 1;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ---------- FORM ---------- */
+.controls {
+  margin-top: 25px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+input[type="file"] {
+  grid-column: span 2;
 }
 
 button {
-    width: 100%;
-    margin-top: 30px;
-    padding: 15px;
-    font-size: 16px;
-    font-weight: 700;
-    border-radius: 14px;
-    border: none;
-    background: linear-gradient(135deg, #4f46e5, #6366f1);
-    color: white;
-    cursor: pointer;
+  grid-column: span 2;
+  padding: 14px;
+  border-radius: 12px;
+  border: none;
+  background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
 }
 
-button:disabled {
-    opacity: 0.6;
+button:hover {
+  opacity: 0.9;
 }
 
-/* Progress */
-.progress-wrap {
-    display: none;
-    margin-top: 18px;
+/* ---------- PREVIEW ---------- */
+.preview {
+  margin-top: 25px;
 }
 
-.progress-bar {
-    height: 10px;
-    width: 100%;
-    background: var(--border);
-    border-radius: 999px;
-    overflow: hidden;
-}
-
-.progress-bar span {
-    display: block;
-    height: 100%;
-    width: 30%;
-    background: linear-gradient(90deg, var(--accent), #22d3ee);
-    animation: loading 1.2s infinite;
-}
-
-@keyframes loading {
-    0% { transform: translateX(-100%); }
-    100% { transform: translateX(400%); }
-}
-
-/* Preview */
-#previewSection {
-    margin-top: 40px;
-    border-top: 1px solid var(--border);
-    padding-top: 30px;
-}
-
-.table-wrap {
-    max-width: 100%;
-    overflow-x: auto;
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    margin-top: 10px;
-}
-
-/* Fancy scrollbar */
-.table-wrap::-webkit-scrollbar {
-    height: 10px;
-}
-.table-wrap::-webkit-scrollbar-thumb {
-    background: linear-gradient(90deg, #4f46e5, #6366f1);
-    border-radius: 999px;
+.table-wrapper {
+  max-height: 300px;
+  overflow: auto;
+  border-radius: 12px;
 }
 
 table {
-    border-collapse: collapse;
-    min-width: 900px;
-    font-size: 12px;
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
 }
 
 th, td {
-    padding: 6px 8px;
-    border: 1px solid var(--border);
-    white-space: nowrap;
+  padding: 8px 10px;
+  border-bottom: 1px solid #ddd;
+  white-space: nowrap;
 }
 
-th {
-    position: sticky;
-    top: 0;
-    background: var(--drop-bg);
-}
-
-.download-btn {
-    display: inline-block;
-    margin-top: 18px;
-    padding: 12px 16px;
-    background: #16a34a;
-    color: white;
-    border-radius: 10px;
-    font-weight: 700;
-    text-decoration: none;
+body.dark th, body.dark td {
+  border-color: #334155;
 }
 </style>
 </head>
 
 <body>
+
 <div class="container">
-<div class="card">
+  <div class="header">
+    <div class="title">📊 Excel Data Cleaner</div>
 
-<div class="header">
-    <div>
-        <div class="title-wrap">
-            <svg class="logo" viewBox="0 0 24 24" fill="none">
-                <rect x="3" y="3" width="18" height="18" rx="3"></rect>
-                <path d="M8 3v18M16 3v18M3 9h18M3 15h18"></path>
-            </svg>
-            <span class="title">Excel Data Cleaner</span>
-        </div>
-        <div class="subtitle">Clean CSV & Excel files instantly</div>
+    <div class="bulb-wrapper" id="bulb">
+      <div class="repair-ring"></div>
+      <div class="bulb"></div>
     </div>
-    <div class="toggle" id="themeToggle">🌙 Dark</div>
-</div>
+  </div>
 
-<form id="cleanForm">
-    <div class="drop-zone" id="dropZone">
-        📂 Drag & drop your file here<br>
-        <strong>or click to browse</strong>
-        <div class="file-name" id="fileName"></div>
+  <form id="cleanForm" class="controls">
+    <input type="file" id="file" required />
+    <label><input type="checkbox" id="trim"> Trim spaces</label>
+    <label><input type="checkbox" id="dup"> Remove duplicates</label>
+    <label><input type="checkbox" id="blank"> Remove blank rows</label>
+    <button type="submit">Clean & Preview</button>
+  </form>
+
+  <div class="preview">
+    <h3>Preview (After)</h3>
+    <div class="table-wrapper">
+      <table id="table"></table>
     </div>
-
-    <input type="file" id="fileInput" required>
-
-    <div class="options">
-        <label><input type="checkbox" name="trim_spaces"> Trim spaces</label>
-        <label><input type="checkbox" name="remove_duplicates"> Remove duplicates</label>
-        <label><input type="checkbox" name="remove_blank_rows"> Remove blank rows</label>
-    </div>
-
-    <button id="submitBtn">Clean & Preview</button>
-
-    <div class="progress-wrap" id="progress">
-        <div class="progress-bar"><span></span></div>
-    </div>
-</form>
-
-<div id="previewSection" style="display:none;">
-    <h4>Before Cleaning</h4>
-    <div class="table-wrap" id="previewBefore"></div>
-
-    <h4 style="margin-top:20px;">After Cleaning</h4>
-    <div class="table-wrap" id="previewAfter"></div>
-
-    <a id="downloadLink" class="download-btn" target="_blank">
-        ⬇ Download Cleaned File
-    </a>
-</div>
-
-</div>
+  </div>
 </div>
 
 <script>
-const API_BASE = "https://data-cleaner-backend.onrender.com";
+const API_URL = "https://YOUR-RENDER-URL.onrender.com/clean";
 
-const form = document.getElementById("cleanForm");
-const btn = document.getElementById("submitBtn");
-const progress = document.getElementById("progress");
+const bulb = document.getElementById("bulb");
+const bulbInner = bulb.querySelector(".bulb");
+let holdTimer;
 
-const dropZone = document.getElementById("dropZone");
-const fileInput = document.getElementById("fileInput");
-const fileName = document.getElementById("fileName");
+/* CLICK = BREAK BULB */
+bulb.addEventListener("click", () => {
+  if (document.body.classList.contains("dark")) return;
+  bulbInner.classList.add("broken");
+  document.body.classList.add("dark");
+});
 
-const previewSection = document.getElementById("previewSection");
-const previewBefore = document.getElementById("previewBefore");
-const previewAfter = document.getElementById("previewAfter");
-const downloadLink = document.getElementById("downloadLink");
+/* HOLD = REPAIR BULB */
+bulb.addEventListener("mousedown", startRepair);
+bulb.addEventListener("touchstart", startRepair);
 
-/* Dark mode */
-const toggle = document.getElementById("themeToggle");
-if (localStorage.theme === "dark") {
-    document.body.classList.add("dark");
-    toggle.textContent = "☀ Light";
+function startRepair() {
+  if (!document.body.classList.contains("dark")) return;
+  bulb.classList.add("repairing");
+
+  holdTimer = setTimeout(() => {
+    bulb.classList.remove("repairing");
+    bulbInner.classList.remove("broken");
+    document.body.classList.remove("dark");
+  }, 3000);
 }
-toggle.onclick = () => {
-    document.body.classList.toggle("dark");
-    const isDark = document.body.classList.contains("dark");
-    localStorage.theme = isDark ? "dark" : "light";
-    toggle.textContent = isDark ? "☀ Light" : "🌙 Dark";
-};
 
-/* Upload */
-dropZone.onclick = () => fileInput.click();
-fileInput.onchange = () => fileName.textContent = fileInput.files[0]?.name || "";
+["mouseup","mouseleave","touchend"].forEach(evt => {
+  bulb.addEventListener(evt, () => {
+    clearTimeout(holdTimer);
+    bulb.classList.remove("repairing");
+  });
+});
 
-/* Submit */
-form.onsubmit = async e => {
-    e.preventDefault();
-    btn.disabled = true;
-    progress.style.display = "block";
+/* ---------- FORM SUBMIT ---------- */
+document.getElementById("cleanForm").addEventListener("submit", async e => {
+  e.preventDefault();
 
-    try {
-        const fd = new FormData();
-        fd.append("file", fileInput.files[0]);
-        document.querySelectorAll("input[type=checkbox]").forEach(c => c.checked && fd.append(c.name, "true"));
+  const formData = new FormData();
+  formData.append("file", file.files[0]);
+  formData.append("trim_spaces", trim.checked);
+  formData.append("remove_duplicates", dup.checked);
+  formData.append("remove_blank_rows", blank.checked);
 
-        const res = await fetch(`${API_BASE}/clean`, { method: "POST", body: fd });
-        const data = await res.json();
+  const res = await fetch(API_URL, { method: "POST", body: formData });
+  const data = await res.json();
 
-        previewBefore.innerHTML = renderTable(data.preview_before);
-        previewAfter.innerHTML = renderTable(data.preview_after);
-        downloadLink.href = API_BASE + data.download_url;
+  const table = document.getElementById("table");
+  table.innerHTML = "";
 
-        previewSection.style.display = "block";
-    } catch (err) {
-        alert("Something went wrong");
-        console.error(err);
-    } finally {
-        progress.style.display = "none";
-        btn.disabled = false;
-    }
-};
+  if (!data.preview_after.length) return;
 
-function renderTable(rows) {
-    if (!rows || !rows.length) return "<p>No data</p>";
-    let html = "<table><tr>";
-    Object.keys(rows[0]).forEach(k => html += `<th>${k}</th>`);
-    html += "</tr>";
-    rows.forEach(r => {
-        html += "<tr>";
-        Object.values(r).forEach(v => html += `<td>${v ?? ""}</td>`);
-        html += "</tr>";
-    });
-    return html + "</table>";
-}
+  table.innerHTML += "<tr>" + Object.keys(data.preview_after[0]).map(h => `<th>${h}</th>`).join("") + "</tr>";
+
+  data.preview_after.forEach(row => {
+    table.innerHTML += "<tr>" + Object.values(row).map(v => `<td>${v}</td>`).join("") + "</tr>";
+  });
+});
 </script>
+
 </body>
 </html>
