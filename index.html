@@ -1,291 +1,19 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Excel Data Cleaner</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<style>
-:root {
-    --bg-main: #f8fafc;
-    --bg-card: #ffffff;
-    --text-main: #1f2937;
-    --text-muted: #6b7280;
-    --accent: #4f46e5;
-    --border: #e5e7eb;
-    --drop-bg: #eef2ff;
-}
-
-body.dark {
-    --bg-main: #0f172a;
-    --bg-card: #020617;
-    --text-main: #e5e7eb;
-    --text-muted: #9ca3af;
-    --accent: #818cf8;
-    --border: #1e293b;
-    --drop-bg: #020617;
-}
-
-* {
-    box-sizing: border-box;
-    font-family: "Segoe UI", system-ui, sans-serif;
-}
-/* ===== Fancy Scrollbar (Table Preview Only) ===== */
-.table-wrap::-webkit-scrollbar {
-    height: 10px;
-}
-
-.table-wrap::-webkit-scrollbar-track {
-    background: transparent;
-    border-radius: 999px;
-}
-
-.table-wrap::-webkit-scrollbar-thumb {
-    background: linear-gradient(
-        90deg,
-        rgba(79,70,229,0.7),
-        rgba(99,102,241,0.9)
-    );
-    border-radius: 999px;
-    box-shadow: inset 0 0 4px rgba(255,255,255,0.3);
-}
-
-.table-wrap::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(
-        90deg,
-        rgba(79,70,229,1),
-        rgba(99,102,241,1)
-    );
-}
-
-/* Firefox support */
-.table-wrap {
-    scrollbar-width: thin;
-    scrollbar-color: var(--accent) transparent;
-}
-
-body {
-    margin: 0;
-    background: radial-gradient(circle at top left, #e0e7ff, transparent 40%),
-                radial-gradient(circle at bottom right, #fef3c7, transparent 40%),
-                var(--bg-main);
-    min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    padding: 30px;
-    color: var(--text-main);
-}
-
-.container {
-    width: 100%;
-    max-width: 1100px;
-}
-
-.card {
-    background: var(--bg-card);
-    padding: 45px;
-    border-radius: 22px;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.12);
-}
-
-.header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.title {
-    font-size: 26px;
-    font-weight: 800;
-}
-
-.subtitle {
-    font-size: 14px;
-    color: var(--text-muted);
-}
-
-.toggle {
-    cursor: pointer;
-    padding: 8px 14px;
-    border-radius: 999px;
-    background: var(--drop-bg);
-}
-
-/* Upload */
-.drop-zone {
-    margin-top: 30px;
-    border: 2px dashed var(--accent);
-    border-radius: 18px;
-    padding: 45px;
-    text-align: center;
-    cursor: pointer;
-}
-
-.drop-zone.dragover {
-    background: rgba(79,70,229,0.15);
-}
-
-.file-name {
-    margin-top: 10px;
-    font-weight: 600;
-}
-
-input[type=file] {
-    display: none;
-}
-
-.options {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 15px;
-    margin-top: 25px;
-}
-
-button {
-    width: 100%;
-    margin-top: 30px;
-    padding: 15px;
-    font-size: 16px;
-    font-weight: 700;
-    border-radius: 14px;
-    border: none;
-    background: linear-gradient(135deg, #4f46e5, #6366f1);
-    color: white;
-    cursor: pointer;
-}
-
-button:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-
-/* Progress */
-.progress-wrap {
-    display: none;
-    margin-top: 18px;
-}
-
-.progress-bar {
-    height: 10px;
-    width: 100%;
-    background: var(--border);
-    border-radius: 999px;
-    overflow: hidden;
-}
-
-.progress-bar span {
-    display: block;
-    height: 100%;
-    width: 30%;
-    background: linear-gradient(90deg, var(--accent), #22d3ee);
-    animation: loading 1.2s infinite;
-}
-
-@keyframes loading {
-    0% { transform: translateX(-100%); }
-    100% { transform: translateX(400%); }
-}
-
-/* Preview */
-#previewSection {
-    margin-top: 40px;
-    border-top: 1px solid var(--border);
-    padding-top: 30px;
-}
-
-.table-wrap {
-    max-width: 100%;
-    overflow-x: auto;
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    margin-top: 10px;
-}
-
-table {
-    border-collapse: collapse;
-    min-width: 900px;
-    font-size: 12px;
-}
-
-th, td {
-    padding: 6px 8px;
-    border: 1px solid var(--border);
-    white-space: nowrap;
-}
-
-th {
-    position: sticky;
-    top: 0;
-    background: var(--drop-bg);
-}
-
-.download-btn {
-    display: inline-block;
-    margin-top: 18px;
-    padding: 12px 16px;
-    background: #16a34a;
-    color: white;
-    border-radius: 10px;
-    font-weight: 700;
-    text-decoration: none;
-}
-</style>
-</head>
-
-<body>
-<div class="container">
-<div class="card">
-
-<div class="header">
-    <div>
-        <div class="title">Excel Data Cleaner</div>
-        <div class="subtitle">Clean CSV & Excel files instantly</div>
-    </div>
-    <div class="toggle" id="themeToggle">🌙 Dark</div>
-</div>
-
-<form id="cleanForm">
-    <div class="drop-zone" id="dropZone">
-        📂 Drag & drop your file here<br>
-        <strong>or click to browse</strong>
-        <div class="file-name" id="fileName"></div>
-    </div>
-
-    <input type="file" id="fileInput" required>
-
-    <div class="options">
-        <label><input type="checkbox" name="trim_spaces"> Trim spaces</label>
-        <label><input type="checkbox" name="remove_duplicates"> Remove duplicates</label>
-        <label><input type="checkbox" name="remove_blank_rows"> Remove blank rows</label>
-    </div>
-
-    <button id="submitBtn">Clean & Preview</button>
-
-    <div class="progress-wrap" id="progress">
-        <div class="progress-bar"><span></span></div>
-    </div>
-</form>
-
-<div id="previewSection" style="display:none;">
-    <h4>Before Cleaning</h4>
-    <div class="table-wrap" id="previewBefore"></div>
-
-    <h4 style="margin-top:20px;">After Cleaning</h4>
-    <div class="table-wrap" id="previewAfter"></div>
-
-    <a id="downloadLink" class="download-btn" target="_blank">
-        ⬇ Download Cleaned File
-    </a>
-</div>
-
-</div>
-</div>
-
 <script>
 const API_BASE = "https://data-cleaner-backend.onrender.com";
+
+/* Elements */
 const form = document.getElementById("cleanForm");
 const btn = document.getElementById("submitBtn");
 const progress = document.getElementById("progress");
+
+const dropZone = document.getElementById("dropZone");
+const fileInput = document.getElementById("fileInput");
+const fileName = document.getElementById("fileName");
+
+const previewSection = document.getElementById("previewSection");
+const previewBefore = document.getElementById("previewBefore");
+const previewAfter = document.getElementById("previewAfter");
+const downloadLink = document.getElementById("downloadLink");
 
 /* Dark mode */
 const toggle = document.getElementById("themeToggle");
@@ -295,50 +23,87 @@ if (localStorage.theme === "dark") {
 }
 toggle.onclick = () => {
     document.body.classList.toggle("dark");
-    localStorage.theme = document.body.classList.contains("dark") ? "dark" : "light";
-    toggle.textContent = document.body.classList.contains("dark") ? "☀ Light" : "🌙 Dark";
+    const dark = document.body.classList.contains("dark");
+    localStorage.theme = dark ? "dark" : "light";
+    toggle.textContent = dark ? "☀ Light" : "🌙 Dark";
 };
 
-/* Upload */
-const dz = dropZone;
-dz.onclick = () => fileInput.click();
-fileInput.onchange = () => fileName.textContent = fileInput.files[0]?.name || "";
+/* Upload click */
+dropZone.onclick = () => fileInput.click();
+
+fileInput.onchange = () => {
+    fileName.textContent = fileInput.files[0]?.name || "";
+};
+
+/* Drag & drop */
+dropZone.addEventListener("dragover", e => {
+    e.preventDefault();
+    dropZone.classList.add("dragover");
+});
+
+dropZone.addEventListener("dragleave", () => {
+    dropZone.classList.remove("dragover");
+});
+
+dropZone.addEventListener("drop", e => {
+    e.preventDefault();
+    dropZone.classList.remove("dragover");
+    fileInput.files = e.dataTransfer.files;
+    fileName.textContent = fileInput.files[0]?.name || "";
+});
 
 /* Submit */
 form.onsubmit = async e => {
     e.preventDefault();
+    if (!fileInput.files.length) return alert("Please select a file");
+
     btn.disabled = true;
     progress.style.display = "block";
 
-    const fd = new FormData();
-    fd.append("file", fileInput.files[0]);
-    document.querySelectorAll("input[type=checkbox]").forEach(c => c.checked && fd.append(c.name, "true"));
+    try {
+        const fd = new FormData();
+        fd.append("file", fileInput.files[0]);
 
-    const res = await fetch(`${API_BASE}/clean`, { method: "POST", body: fd });
-    const data = await res.json();
+        document.querySelectorAll("input[type=checkbox]").forEach(c => {
+            if (c.checked) fd.append(c.name, "true");
+        });
 
-    previewBefore.innerHTML = renderTable(data.preview_before);
-    previewAfter.innerHTML = renderTable(data.preview_after);
-    downloadLink.href = API_BASE + data.download_url;
+        const res = await fetch(`${API_BASE}/clean`, {
+            method: "POST",
+            body: fd
+        });
 
-    progress.style.display = "none";
-    btn.disabled = false;
-    previewSection.style.display = "block";
+        if (!res.ok) throw new Error("Cleaning failed");
+
+        const data = await res.json();
+
+        previewBefore.innerHTML = renderTable(data.preview_before);
+        previewAfter.innerHTML = renderTable(data.preview_after);
+        downloadLink.href = API_BASE + data.download_url;
+
+        previewSection.style.display = "block";
+    } catch (err) {
+        alert("Something went wrong. Please try again.");
+        console.error(err);
+    } finally {
+        progress.style.display = "none";
+        btn.disabled = false;
+    }
 };
 
 function renderTable(rows) {
-    if (!rows?.length) return "<p>No data</p>";
-    let h = "<table><tr>";
-    Object.keys(rows[0]).forEach(k => h += `<th>${k}</th>`);
-    h += "</tr>";
+    if (!rows || !rows.length) return "<p>No data</p>";
+
+    let html = "<table><tr>";
+    Object.keys(rows[0]).forEach(k => html += `<th>${k}</th>`);
+    html += "</tr>";
+
     rows.forEach(r => {
-        h += "<tr>";
-        Object.values(r).forEach(v => h += `<td>${v}</td>`);
-        h += "</tr>";
+        html += "<tr>";
+        Object.values(r).forEach(v => html += `<td>${v ?? ""}</td>`);
+        html += "</tr>";
     });
-    return h + "</table>";
+
+    return html + "</table>";
 }
 </script>
-</body>
-</html>
-
