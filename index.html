@@ -10,6 +10,35 @@
             box-sizing: border-box;
             font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
         }
+    .table-wrapper {
+    max-height: 350px;
+    overflow: auto;
+    margin-top: 10px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+}
+
+table {
+    min-width: 1200px;
+    border-collapse: collapse;
+}
+
+th {
+    position: sticky;
+    top: 0;
+    background: #edf2f7;
+    z-index: 2;
+}
+
+td, th {
+    padding: 8px 10px;
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+tr:nth-child(even) {
+    background-color: #f8fafc;
+}
 
         body {
             margin: 0;
@@ -167,7 +196,7 @@
     </form>
 
     <div id="previewSection" style="display:none; margin-top:20px;">
-        <h4>Before Cleaning</h4>
+        <h4 class="section-title">Before Cleaning (Preview)</h4>
         <div class="table-wrapper">
     <div id="previewBefore"></div>
 </div>
@@ -269,5 +298,6 @@ function renderTable(rows) {
 
 </body>
 </html>
+
 
 
