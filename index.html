@@ -2,14 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<div class="title-wrap">
-    <svg class="logo" viewBox="0 0 24 24" fill="none">
-        <rect x="3" y="3" width="18" height="18" rx="3"></rect>
-        <path d="M8 3v18M16 3v18M3 9h18M3 15h18"></path>
-    </svg>
-    <span>Excel Data Cleaner</span>
-</div>
-
+<title>Excel Data Cleaner</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
@@ -38,45 +31,22 @@ body.dark {
     font-family: "Segoe UI", system-ui, sans-serif;
 }
 
-/* Fancy scrollbar */
-.table-wrap::-webkit-scrollbar {
-    height: 10px;
-}
-.table-wrap::-webkit-scrollbar-thumb {
-    background: linear-gradient(90deg, #4f46e5, #6366f1);
-    border-radius: 999px;
-}
-.table-wrap {
-    scrollbar-width: thin;
-    scrollbar-color: var(--accent) transparent;
-}
-
+/* Animated Gradient Background */
 body {
     margin: 0;
     min-height: 100vh;
+    padding: 40px;
     display: flex;
     justify-content: center;
-    padding: 40px;
     color: var(--text-main);
 
-    background: linear-gradient(
-        135deg,
-        #eef2ff,
-        #fdf2f8,
-        #ecfeff
-    );
+    background: linear-gradient(135deg, #eef2ff, #fdf2f8, #ecfeff);
     background-size: 300% 300%;
     animation: gradientMove 12s ease infinite;
 }
 
-/* Dark mode gradient */
 body.dark {
-    background: linear-gradient(
-        135deg,
-        #020617,
-        #0f172a,
-        #020617
-    );
+    background: linear-gradient(135deg, #020617, #0f172a, #020617);
     background-size: 300% 300%;
     animation: gradientMove 14s ease infinite;
 }
@@ -86,7 +56,6 @@ body.dark {
     50% { background-position: 100% 50%; }
     100% { background-position: 0% 50%; }
 }
-
 
 .container {
     width: 100%;
@@ -100,10 +69,12 @@ body.dark {
         rgba(255,255,255,0.95)
     );
     backdrop-filter: blur(14px);
+    padding: 45px;
+    border-radius: 22px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.12);
     border: 1px solid rgba(255,255,255,0.3);
 }
 
-/* Dark mode card */
 body.dark .card {
     background: linear-gradient(
         180deg,
@@ -113,17 +84,13 @@ body.dark .card {
     border: 1px solid rgba(255,255,255,0.08);
 }
 
-
+/* Header */
 .header {
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
-.title {
-    font-size: 26px;
-    font-weight: 800;
-}
 .title-wrap {
     display: flex;
     align-items: center;
@@ -141,6 +108,11 @@ body.dark .card {
 
 body.dark .logo {
     fill: rgba(129,140,248,0.15);
+}
+
+.title {
+    font-size: 26px;
+    font-weight: 800;
 }
 
 .subtitle {
@@ -200,7 +172,6 @@ button {
 
 button:disabled {
     opacity: 0.6;
-    cursor: not-allowed;
 }
 
 /* Progress */
@@ -245,6 +216,15 @@ button:disabled {
     margin-top: 10px;
 }
 
+/* Fancy scrollbar */
+.table-wrap::-webkit-scrollbar {
+    height: 10px;
+}
+.table-wrap::-webkit-scrollbar-thumb {
+    background: linear-gradient(90deg, #4f46e5, #6366f1);
+    border-radius: 999px;
+}
+
 table {
     border-collapse: collapse;
     min-width: 900px;
@@ -282,7 +262,13 @@ th {
 
 <div class="header">
     <div>
-        <div class="title">Excel Data Cleaner</div>
+        <div class="title-wrap">
+            <svg class="logo" viewBox="0 0 24 24" fill="none">
+                <rect x="3" y="3" width="18" height="18" rx="3"></rect>
+                <path d="M8 3v18M16 3v18M3 9h18M3 15h18"></path>
+            </svg>
+            <span class="title">Excel Data Cleaner</span>
+        </div>
         <div class="subtitle">Clean CSV & Excel files instantly</div>
     </div>
     <div class="toggle" id="themeToggle">🌙 Dark</div>
@@ -356,13 +342,10 @@ toggle.onclick = () => {
 
 /* Upload */
 dropZone.onclick = () => fileInput.click();
-
-fileInput.onchange = () => {
-    fileName.textContent = fileInput.files[0]?.name || "";
-};
+fileInput.onchange = () => fileName.textContent = fileInput.files[0]?.name || "";
 
 /* Submit */
-form.onsubmit = async (e) => {
+form.onsubmit = async e => {
     e.preventDefault();
     btn.disabled = true;
     progress.style.display = "block";
@@ -370,16 +353,9 @@ form.onsubmit = async (e) => {
     try {
         const fd = new FormData();
         fd.append("file", fileInput.files[0]);
+        document.querySelectorAll("input[type=checkbox]").forEach(c => c.checked && fd.append(c.name, "true"));
 
-        document.querySelectorAll("input[type=checkbox]").forEach(c => {
-            if (c.checked) fd.append(c.name, "true");
-        });
-
-        const res = await fetch(`${API_BASE}/clean`, {
-            method: "POST",
-            body: fd
-        });
-
+        const res = await fetch(`${API_BASE}/clean`, { method: "POST", body: fd });
         const data = await res.json();
 
         previewBefore.innerHTML = renderTable(data.preview_before);
@@ -398,21 +374,16 @@ form.onsubmit = async (e) => {
 
 function renderTable(rows) {
     if (!rows || !rows.length) return "<p>No data</p>";
-
     let html = "<table><tr>";
     Object.keys(rows[0]).forEach(k => html += `<th>${k}</th>`);
     html += "</tr>";
-
     rows.forEach(r => {
         html += "<tr>";
         Object.values(r).forEach(v => html += `<td>${v ?? ""}</td>`);
         html += "</tr>";
     });
-
     return html + "</table>";
 }
 </script>
 </body>
 </html>
-
-
