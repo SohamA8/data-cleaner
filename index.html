@@ -22,7 +22,7 @@
 
         .card {
             background: #ffffff;
-            width: 430px;
+            width: 520px;
             padding: 30px;
             border-radius: 16px;
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
@@ -43,16 +43,13 @@
             margin-bottom: 25px;
         }
 
-        /* Drag & Drop Box */
         .drop-zone {
             border: 2px dashed #cbd5e0;
             border-radius: 14px;
             padding: 30px 20px;
             text-align: center;
             background: #f8fafc;
-            color: #4a5568;
             cursor: pointer;
-            transition: all 0.2s ease;
         }
 
         .drop-zone.dragover {
@@ -60,14 +57,9 @@
             border-color: #5a67d8;
         }
 
-        .drop-zone strong {
-            color: #5a67d8;
-        }
-
         .file-name {
             margin-top: 10px;
             font-size: 13px;
-            color: #2d3748;
             font-weight: 600;
         }
 
@@ -82,25 +74,17 @@
         .checkbox {
             display: flex;
             align-items: center;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
         }
 
         .checkbox input {
-            width: 18px;
-            height: 18px;
             margin-right: 10px;
             accent-color: #5a67d8;
         }
 
-        .checkbox label {
-            font-weight: 500;
-            color: #2d3748;
-            cursor: pointer;
-        }
-
         button {
             width: 100%;
-            margin-top: 22px;
+            margin-top: 20px;
             padding: 12px;
             background: linear-gradient(135deg, #667eea, #5a67d8);
             border: none;
@@ -109,16 +93,39 @@
             font-size: 15px;
             font-weight: 600;
             cursor: pointer;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
 
-        button:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 8px 20px rgba(90, 103, 216, 0.4);
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+
+        th, td {
+            border: 1px solid #cbd5e0;
+            padding: 6px;
+            text-align: left;
+        }
+
+        th {
+            background: #edf2f7;
+        }
+
+        .download-btn {
+            display: inline-block;
+            margin-top: 12px;
+            padding: 10px 14px;
+            background: #38a169;
+            color: white;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
         }
 
         .footer {
-            margin-top: 18px;
+            margin-top: 15px;
             text-align: center;
             font-size: 12px;
             color: #a0aec0;
@@ -129,39 +136,47 @@
 
 <div class="card">
     <div class="title">Excel Data Cleaner</div>
-    <div class="subtitle">Drag, drop & clean your data instantly</div>
+    <div class="subtitle">Clean CSV & Excel files instantly</div>
 
-    <form action="https://data-cleaner-backend.onrender.com/clean"
-      method="post"
-      enctype="multipart/form-data">
-
-        <!-- Drag & Drop -->
+    <form id="cleanForm">
         <div class="drop-zone" id="dropZone">
             <p>📂 Drag & drop your file here<br>or <strong>click to browse</strong></p>
             <div class="file-name" id="fileName"></div>
         </div>
 
-        <input type="file" name="file" id="fileInput" required>
+        <input type="file" id="fileInput" required>
 
         <div class="checkbox-group">
             <div class="checkbox">
-                <input type="checkbox" name="trim_spaces" value="true" id="trim">
-                <label for="trim">Trim extra spaces (inside & outside)</label>
+                <input type="checkbox" name="trim_spaces">
+                <label>Trim extra spaces</label>
             </div>
 
             <div class="checkbox">
-                <input type="checkbox" name="remove_duplicates" value="true" id="dup">
-                <label for="dup">Remove duplicate rows</label>
+                <input type="checkbox" name="remove_duplicates">
+                <label>Remove duplicate rows</label>
             </div>
 
             <div class="checkbox">
-                <input type="checkbox" name="remove_blank_rows" value="true" id="blank">
-                <label for="blank">Remove blank rows</label>
+                <input type="checkbox" name="remove_blank_rows">
+                <label>Remove blank rows</label>
             </div>
         </div>
 
-        <button type="submit">Clean & Download</button>
+        <button type="submit">Clean & Preview</button>
     </form>
+
+    <div id="previewSection" style="display:none; margin-top:20px;">
+        <h4>Before Cleaning</h4>
+        <div id="previewBefore"></div>
+
+        <h4 style="margin-top:15px;">After Cleaning</h4>
+        <div id="previewAfter"></div>
+
+        <a id="downloadLink" class="download-btn" target="_blank">
+            ⬇ Download Cleaned File
+        </a>
+    </div>
 
     <div class="footer">
         Supports .csv, .xlsx & .xls
@@ -169,35 +184,84 @@
 </div>
 
 <script>
-    const dropZone = document.getElementById("dropZone");
-    const fileInput = document.getElementById("fileInput");
-    const fileName = document.getElementById("fileName");
+const API_BASE = "https://data-cleaner-backend.onrender.com/clean";
 
-    dropZone.addEventListener("click", () => fileInput.click());
+const dropZone = document.getElementById("dropZone");
+const fileInput = document.getElementById("fileInput");
+const fileName = document.getElementById("fileName");
+const form = document.getElementById("cleanForm");
 
-    fileInput.addEventListener("change", () => {
-        if (fileInput.files.length > 0) {
-            fileName.textContent = fileInput.files[0].name;
+dropZone.onclick = () => fileInput.click();
+
+fileInput.onchange = () => {
+    if (fileInput.files.length) {
+        fileName.textContent = fileInput.files[0].name;
+    }
+};
+
+dropZone.ondragover = e => {
+    e.preventDefault();
+    dropZone.classList.add("dragover");
+};
+
+dropZone.ondragleave = () => dropZone.classList.remove("dragover");
+
+dropZone.ondrop = e => {
+    e.preventDefault();
+    dropZone.classList.remove("dragover");
+    fileInput.files = e.dataTransfer.files;
+    fileName.textContent = e.dataTransfer.files[0].name;
+};
+
+form.addEventListener("submit", async e => {
+    e.preventDefault();
+
+    if (!fileInput.files.length) {
+        alert("Please upload a file");
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", fileInput.files[0]);
+
+    document.querySelectorAll("input[type=checkbox]").forEach(cb => {
+        if (cb.checked) {
+            formData.append(cb.name, "true");
         }
     });
 
-    dropZone.addEventListener("dragover", (e) => {
-        e.preventDefault();
-        dropZone.classList.add("dragover");
+    const res = await fetch(`${API_BASE}/clean`, {
+        method: "POST",
+        body: formData
     });
 
-    dropZone.addEventListener("dragleave", () => {
-        dropZone.classList.remove("dragover");
+    const data = await res.json();
+
+    document.getElementById("previewBefore").innerHTML = renderTable(data.preview_before);
+    document.getElementById("previewAfter").innerHTML = renderTable(data.preview_after);
+
+    const link = document.getElementById("downloadLink");
+    link.href = API_BASE + data.download_url;
+
+    document.getElementById("previewSection").style.display = "block";
+});
+
+function renderTable(rows) {
+    if (!rows || rows.length === 0) return "<p>No data</p>";
+
+    let html = "<table><tr>";
+    Object.keys(rows[0]).forEach(col => html += `<th>${col}</th>`);
+    html += "</tr>";
+
+    rows.forEach(row => {
+        html += "<tr>";
+        Object.values(row).forEach(val => html += `<td>${val}</td>`);
+        html += "</tr>";
     });
 
-    dropZone.addEventListener("drop", (e) => {
-        e.preventDefault();
-        dropZone.classList.remove("dragover");
-        fileInput.files = e.dataTransfer.files;
-        fileName.textContent = e.dataTransfer.files[0].name;
-    });
+    return html + "</table>";
+}
 </script>
 
 </body>
 </html>
-
