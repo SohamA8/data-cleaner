@@ -2,7 +2,14 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Excel Data Cleaner</title>
+<div class="title-wrap">
+    <svg class="logo" viewBox="0 0 24 24" fill="none">
+        <rect x="3" y="3" width="18" height="18" rx="3"></rect>
+        <path d="M8 3v18M16 3v18M3 9h18M3 15h18"></path>
+    </svg>
+    <span>Excel Data Cleaner</span>
+</div>
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
@@ -116,6 +123,24 @@ body.dark .card {
 .title {
     font-size: 26px;
     font-weight: 800;
+}
+.title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.logo {
+    width: 28px;
+    height: 28px;
+    stroke: var(--accent);
+    stroke-width: 1.8;
+    fill: rgba(79,70,229,0.08);
+    border-radius: 6px;
+}
+
+body.dark .logo {
+    fill: rgba(129,140,248,0.15);
 }
 
 .subtitle {
@@ -389,4 +414,5 @@ function renderTable(rows) {
 </script>
 </body>
 </html>
+
 
