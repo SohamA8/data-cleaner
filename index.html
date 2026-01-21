@@ -5,9 +5,10 @@
 <title>Excel Data Cleaner</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- ===== CSS (UNCHANGED) ===== -->
+<!-- SheetJS -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
 <style>
-/* --- SAME CSS YOU PROVIDED --- */
 :root {
     --bg-main: #f8fafc;
     --bg-card: #ffffff;
@@ -108,10 +109,6 @@ body.dark .card {
     cursor: pointer;
 }
 
-.drop-zone.dragover {
-    background: rgba(79,70,229,0.15);
-}
-
 .file-name { margin-top:10px; font-weight:600; }
 
 input[type=file] { display:none; }
@@ -151,6 +148,24 @@ button {
     from { transform:translateX(-100%); }
     to { transform:translateX(400%); }
 }
+
+table {
+    width:100%;
+    border-collapse:collapse;
+    margin-top:15px;
+    font-size:14px;
+}
+
+th, td {
+    border:1px solid var(--border);
+    padding:8px;
+}
+
+th {
+    background:var(--drop-bg);
+    position:sticky;
+    top:0;
+}
 </style>
 </head>
 
@@ -163,13 +178,11 @@ button {
     <div class="toggle" id="themeToggle">🌙 Dark</div>
 </div>
 
-<!-- TABS -->
 <div class="tabs">
     <div class="tab active" id="cleanTab">🧹 Clean Excel</div>
     <div class="tab" id="macroTab">⚙ Run Macro</div>
 </div>
 
-<!-- CLEAN SECTION -->
 <div id="cleanSection">
 <form id="cleanForm">
     <div class="drop-zone" id="dropZone">
@@ -187,27 +200,15 @@ button {
 <div id="previewSection" style="display:none;">
     <h4>Before Cleaning</h4>
     <div id="previewBefore"></div>
-    <h4>After Cleaning</h4>
+
+    <h4 style="margin-top:30px;">After Cleaning</h4>
     <div id="previewAfter"></div>
+
+    <button id="downloadBtn">⬇ Download Cleaned Excel</button>
 </div>
 </div>
 
-<!-- MACRO SECTION -->
-<div id="macroSection" style="display:none;">
-    <div class="drop-zone" id="macroExcelZone">
-        📄 Upload Excel
-        <div class="file-name" id="macroExcelName"></div>
-    </div>
-    <input type="file" id="macroExcel" accept=".csv,.xls,.xlsx">
-
-    <div class="drop-zone" id="macroBasZone">
-        📜 Upload .bas file
-        <div class="file-name" id="macroBasName"></div>
-    </div>
-    <input type="file" id="macroBas" accept=".bas">
-
-    <button id="runMacroBtn">Run Macro</button>
-</div>
+<div id="macroSection" style="display:none;"></div>
 
 </div>
 </div>
@@ -216,10 +217,7 @@ button {
 const API_BASE = "https://data-cleaner-backend.onrender.com";
 
 /* DARK MODE */
-const toggle = document.getElementById("themeToggle");
-toggle.onclick = () => {
-    document.body.classList.toggle("dark");
-};
+themeToggle.onclick = () => document.body.classList.toggle("dark");
 
 /* TABS */
 cleanTab.onclick = () => {
@@ -236,10 +234,43 @@ macroTab.onclick = () => {
     cleanSection.style.display = "none";
 };
 
-/* CLEAN */
+/* FILE UPLOAD */
 dropZone.onclick = () => fileInput.click();
 fileInput.onchange = () => fileName.textContent = fileInput.files[0]?.name || "";
 
+/* TABLE RENDER */
+function renderTable(data, containerId) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = "";
+
+    if (!data || !data.length) {
+        container.innerHTML = "<p>No data</p>";
+        return;
+    }
+
+    const table = document.createElement("table");
+    const thead = table.createTHead();
+    const headerRow = thead.insertRow();
+
+    Object.keys(data[0]).forEach(key => {
+        const th = document.createElement("th");
+        th.textContent = key;
+        headerRow.appendChild(th);
+    });
+
+    const tbody = table.createTBody();
+    data.forEach(row => {
+        const tr = tbody.insertRow();
+        Object.values(row).forEach(val => {
+            const td = tr.insertCell();
+            td.textContent = val ?? "";
+        });
+    });
+
+    container.appendChild(table);
+}
+
+/* CLEAN SUBMIT */
 cleanForm.onsubmit = async e => {
     e.preventDefault();
     progress.style.display = "block";
@@ -247,30 +278,28 @@ cleanForm.onsubmit = async e => {
     const fd = new FormData();
     fd.append("file", fileInput.files[0]);
 
-    const res = await fetch(`${API_BASE}/clean`, { method:"POST", body:fd });
+    const res = await fetch(`${API_BASE}/clean`, {
+        method: "POST",
+        body: fd
+    });
+
     const data = await res.json();
 
-    previewBefore.innerHTML = JSON.stringify(data.preview_before, null, 2);
-    previewAfter.innerHTML = JSON.stringify(data.preview_after, null, 2);
-    previewSection.style.display = "block";
+    renderTable(data.preview_before, "previewBefore");
+    renderTable(data.preview_after, "previewAfter");
 
+    window.cleanedData = data.preview_after;
+
+    previewSection.style.display = "block";
     progress.style.display = "none";
 };
 
-/* MACRO */
-macroExcelZone.onclick = () => macroExcel.click();
-macroBasZone.onclick = () => macroBas.click();
-
-macroExcel.onchange = () => macroExcelName.textContent = macroExcel.files[0]?.name || "";
-macroBas.onchange = () => macroBasName.textContent = macroBas.files[0]?.name || "";
-
-runMacroBtn.onclick = async () => {
-    const fd = new FormData();
-    fd.append("excel", macroExcel.files[0]);
-    fd.append("bas", macroBas.files[0]);
-
-    await fetch(`${API_BASE}/run-macro`, { method:"POST", body:fd });
-    alert("Macro executed successfully");
+/* DOWNLOAD XLSX */
+downloadBtn.onclick = () => {
+    const ws = XLSX.utils.json_to_sheet(window.cleanedData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Cleaned Data");
+    XLSX.writeFile(wb, "cleaned_excel.xlsx");
 };
 </script>
 </body>
