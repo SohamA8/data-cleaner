@@ -31,7 +31,7 @@ body.dark {
     font-family: "Segoe UI", system-ui, sans-serif;
 }
 
-/* Animated Gradient Background */
+/* Animated background */
 body {
     margin: 0;
     min-height: 100vh;
@@ -39,7 +39,6 @@ body {
     display: flex;
     justify-content: center;
     color: var(--text-main);
-
     background: linear-gradient(135deg, #eef2ff, #fdf2f8, #ecfeff);
     background-size: 300% 300%;
     animation: gradientMove 12s ease infinite;
@@ -72,16 +71,6 @@ body.dark {
     padding: 45px;
     border-radius: 22px;
     box-shadow: 0 20px 40px rgba(0,0,0,0.12);
-    border: 1px solid rgba(255,255,255,0.3);
-}
-
-body.dark .card {
-    background: linear-gradient(
-        180deg,
-        rgba(2,6,23,0.85),
-        rgba(2,6,23,0.95)
-    );
-    border: 1px solid rgba(255,255,255,0.08);
 }
 
 /* Header */
@@ -103,11 +92,6 @@ body.dark .card {
     stroke: var(--accent);
     stroke-width: 1.8;
     fill: rgba(79,70,229,0.08);
-    border-radius: 6px;
-}
-
-body.dark .logo {
-    fill: rgba(129,140,248,0.15);
 }
 
 .title {
@@ -127,18 +111,36 @@ body.dark .logo {
     background: var(--drop-bg);
 }
 
+/* MODE SWITCH */
+.mode-switch {
+    display: flex;
+    gap: 10px;
+    margin-top: 25px;
+}
+
+.mode-switch button {
+    flex: 1;
+    padding: 10px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: transparent;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.mode-switch button.active {
+    background: var(--accent);
+    color: white;
+}
+
 /* Upload */
 .drop-zone {
-    margin-top: 30px;
+    margin-top: 25px;
     border: 2px dashed var(--accent);
     border-radius: 18px;
     padding: 45px;
     text-align: center;
     cursor: pointer;
-}
-
-.drop-zone.dragover {
-    background: rgba(79,70,229,0.15);
 }
 
 .file-name {
@@ -157,7 +159,7 @@ input[type=file] {
     margin-top: 25px;
 }
 
-button {
+button.submit {
     width: 100%;
     margin-top: 30px;
     padding: 15px;
@@ -170,11 +172,6 @@ button {
     cursor: pointer;
 }
 
-button:disabled {
-    opacity: 0.6;
-}
-
-/* Progress */
 .progress-wrap {
     display: none;
     margin-top: 18px;
@@ -182,7 +179,6 @@ button:disabled {
 
 .progress-bar {
     height: 10px;
-    width: 100%;
     background: var(--border);
     border-radius: 999px;
     overflow: hidden;
@@ -200,59 +196,6 @@ button:disabled {
     0% { transform: translateX(-100%); }
     100% { transform: translateX(400%); }
 }
-
-/* Preview */
-#previewSection {
-    margin-top: 40px;
-    border-top: 1px solid var(--border);
-    padding-top: 30px;
-}
-
-.table-wrap {
-    max-width: 100%;
-    overflow-x: auto;
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    margin-top: 10px;
-}
-
-/* Fancy scrollbar */
-.table-wrap::-webkit-scrollbar {
-    height: 10px;
-}
-.table-wrap::-webkit-scrollbar-thumb {
-    background: linear-gradient(90deg, #4f46e5, #6366f1);
-    border-radius: 999px;
-}
-
-table {
-    border-collapse: collapse;
-    min-width: 900px;
-    font-size: 12px;
-}
-
-th, td {
-    padding: 6px 8px;
-    border: 1px solid var(--border);
-    white-space: nowrap;
-}
-
-th {
-    position: sticky;
-    top: 0;
-    background: var(--drop-bg);
-}
-
-.download-btn {
-    display: inline-block;
-    margin-top: 18px;
-    padding: 12px 16px;
-    background: #16a34a;
-    color: white;
-    border-radius: 10px;
-    font-weight: 700;
-    text-decoration: none;
-}
 </style>
 </head>
 
@@ -269,121 +212,91 @@ th {
             </svg>
             <span class="title">Excel Data Cleaner</span>
         </div>
-        <div class="subtitle">Clean CSV & Excel files instantly</div>
+        <div class="subtitle">Clean Excel files or run macros safely</div>
     </div>
     <div class="toggle" id="themeToggle">🌙 Dark</div>
 </div>
 
-<form id="cleanForm">
+<!-- MODE -->
+<div class="mode-switch">
+    <button id="modeClean" class="active">🧹 Clean Excel</button>
+    <button id="modeMacro">⚙ Run Macro</button>
+</div>
+
+<form id="toolForm">
     <div class="drop-zone" id="dropZone">
-        📂 Drag & drop your file here<br>
-        <strong>or click to browse</strong>
+        📂 Click to upload Excel file
         <div class="file-name" id="fileName"></div>
     </div>
 
-    <input type="file" id="fileInput" required>
+    <input type="file" id="excelFile" required>
 
-    <div class="options">
+    <!-- Macro file -->
+    <input type="file" id="macroFile" accept=".bas" style="display:none;">
+
+    <div class="options" id="cleanOptions">
         <label><input type="checkbox" name="trim_spaces"> Trim spaces</label>
         <label><input type="checkbox" name="remove_duplicates"> Remove duplicates</label>
         <label><input type="checkbox" name="remove_blank_rows"> Remove blank rows</label>
     </div>
 
-    <button id="submitBtn">Clean & Preview</button>
+    <button class="submit" id="submitBtn">Clean & Preview</button>
 
     <div class="progress-wrap" id="progress">
         <div class="progress-bar"><span></span></div>
     </div>
 </form>
 
-<div id="previewSection" style="display:none;">
-    <h4>Before Cleaning</h4>
-    <div class="table-wrap" id="previewBefore"></div>
-
-    <h4 style="margin-top:20px;">After Cleaning</h4>
-    <div class="table-wrap" id="previewAfter"></div>
-
-    <a id="downloadLink" class="download-btn" target="_blank">
-        ⬇ Download Cleaned File
-    </a>
-</div>
-
 </div>
 </div>
 
 <script>
-const API_BASE = "https://data-cleaner-backend.onrender.com";
+const CLEAN_API = "https://data-cleaner-backend.onrender.com";
+const MACRO_API = "http://localhost:9000";
 
-const form = document.getElementById("cleanForm");
-const btn = document.getElementById("submitBtn");
+let mode = "clean";
+
+const modeClean = document.getElementById("modeClean");
+const modeMacro = document.getElementById("modeMacro");
+const excelFile = document.getElementById("excelFile");
+const macroFile = document.getElementById("macroFile");
+const dropZone = document.getElementById("dropZone");
+const submitBtn = document.getElementById("submitBtn");
 const progress = document.getElementById("progress");
 
-const dropZone = document.getElementById("dropZone");
-const fileInput = document.getElementById("fileInput");
-const fileName = document.getElementById("fileName");
+modeClean.onclick = () => switchMode("clean");
+modeMacro.onclick = () => switchMode("macro");
 
-const previewSection = document.getElementById("previewSection");
-const previewBefore = document.getElementById("previewBefore");
-const previewAfter = document.getElementById("previewAfter");
-const downloadLink = document.getElementById("downloadLink");
-
-/* Dark mode */
-const toggle = document.getElementById("themeToggle");
-if (localStorage.theme === "dark") {
-    document.body.classList.add("dark");
-    toggle.textContent = "☀ Light";
+function switchMode(m) {
+    mode = m;
+    modeClean.classList.toggle("active", m === "clean");
+    modeMacro.classList.toggle("active", m === "macro");
+    document.getElementById("cleanOptions").style.display = m === "clean" ? "grid" : "none";
+    macroFile.style.display = m === "macro" ? "block" : "none";
+    submitBtn.textContent = m === "clean" ? "Clean & Preview" : "Run Macro & Download";
 }
-toggle.onclick = () => {
-    document.body.classList.toggle("dark");
-    const isDark = document.body.classList.contains("dark");
-    localStorage.theme = isDark ? "dark" : "light";
-    toggle.textContent = isDark ? "☀ Light" : "🌙 Dark";
-};
 
-/* Upload */
-dropZone.onclick = () => fileInput.click();
-fileInput.onchange = () => fileName.textContent = fileInput.files[0]?.name || "";
+dropZone.onclick = () => excelFile.click();
 
-/* Submit */
-form.onsubmit = async e => {
+document.getElementById("toolForm").onsubmit = async e => {
     e.preventDefault();
-    btn.disabled = true;
     progress.style.display = "block";
 
-    try {
-        const fd = new FormData();
-        fd.append("file", fileInput.files[0]);
-        document.querySelectorAll("input[type=checkbox]").forEach(c => c.checked && fd.append(c.name, "true"));
+    const fd = new FormData();
+    fd.append("excel", excelFile.files[0]);
 
-        const res = await fetch(`${API_BASE}/clean`, { method: "POST", body: fd });
-        const data = await res.json();
-
-        previewBefore.innerHTML = renderTable(data.preview_before);
-        previewAfter.innerHTML = renderTable(data.preview_after);
-        downloadLink.href = API_BASE + data.download_url;
-
-        previewSection.style.display = "block";
-    } catch (err) {
-        alert("Something went wrong");
-        console.error(err);
-    } finally {
-        progress.style.display = "none";
-        btn.disabled = false;
+    if (mode === "macro") {
+        fd.append("macro", macroFile.files[0]);
+        await fetch(`${MACRO_API}/run-macro`, { method: "POST", body: fd });
+        alert("Macro executed successfully!");
+    } else {
+        fd.append("file", excelFile.files[0]);
+        await fetch(`${CLEAN_API}/clean`, { method: "POST", body: fd });
+        alert("Clean completed!");
     }
-};
 
-function renderTable(rows) {
-    if (!rows || !rows.length) return "<p>No data</p>";
-    let html = "<table><tr>";
-    Object.keys(rows[0]).forEach(k => html += `<th>${k}</th>`);
-    html += "</tr>";
-    rows.forEach(r => {
-        html += "<tr>";
-        Object.values(r).forEach(v => html += `<td>${v ?? ""}</td>`);
-        html += "</tr>";
-    });
-    return html + "</table>";
-}
+    progress.style.display = "none";
+};
 </script>
 </body>
 </html>
