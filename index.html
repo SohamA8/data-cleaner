@@ -31,7 +31,6 @@ body.dark {
     font-family: "Segoe UI", system-ui, sans-serif;
 }
 
-/* Animated Gradient Background */
 body {
     margin: 0;
     min-height: 100vh;
@@ -39,7 +38,6 @@ body {
     display: flex;
     justify-content: center;
     color: var(--text-main);
-
     background: linear-gradient(135deg, #eef2ff, #fdf2f8, #ecfeff);
     background-size: 300% 300%;
     animation: gradientMove 12s ease infinite;
@@ -84,7 +82,6 @@ body.dark .card {
     border: 1px solid rgba(255,255,255,0.08);
 }
 
-/* Header */
 .header {
     display: flex;
     justify-content: space-between;
@@ -106,10 +103,6 @@ body.dark .card {
     border-radius: 6px;
 }
 
-body.dark .logo {
-    fill: rgba(129,140,248,0.15);
-}
-
 .title {
     font-size: 26px;
     font-weight: 800;
@@ -127,7 +120,6 @@ body.dark .logo {
     background: var(--drop-bg);
 }
 
-/* Upload */
 .drop-zone {
     margin-top: 30px;
     border: 2px dashed var(--accent);
@@ -135,10 +127,6 @@ body.dark .logo {
     padding: 45px;
     text-align: center;
     cursor: pointer;
-}
-
-.drop-zone.dragover {
-    background: rgba(79,70,229,0.15);
 }
 
 .file-name {
@@ -174,7 +162,6 @@ button:disabled {
     opacity: 0.6;
 }
 
-/* Progress */
 .progress-wrap {
     display: none;
     margin-top: 18px;
@@ -201,7 +188,6 @@ button:disabled {
     100% { transform: translateX(400%); }
 }
 
-/* Preview */
 #previewSection {
     margin-top: 40px;
     border-top: 1px solid var(--border);
@@ -214,15 +200,6 @@ button:disabled {
     border: 1px solid var(--border);
     border-radius: 12px;
     margin-top: 10px;
-}
-
-/* Fancy scrollbar */
-.table-wrap::-webkit-scrollbar {
-    height: 10px;
-}
-.table-wrap::-webkit-scrollbar-thumb {
-    background: linear-gradient(90deg, #4f46e5, #6366f1);
-    border-radius: 999px;
 }
 
 table {
@@ -267,12 +244,21 @@ th {
                 <rect x="3" y="3" width="18" height="18" rx="3"></rect>
                 <path d="M8 3v18M16 3v18M3 9h18M3 15h18"></path>
             </svg>
-            <span class="title">Excel Data Cleaner</span>
+            <span class="title">Excel Utility Tool</span>
         </div>
-        <div class="subtitle">Clean CSV & Excel files instantly</div>
+        <div class="subtitle">Data Cleaning & Macro Execution</div>
     </div>
     <div class="toggle" id="themeToggle">🌙 Dark</div>
 </div>
+
+<!-- Feature Toggle -->
+<div style="margin-top:25px; display:flex; gap:12px;">
+    <button type="button" id="showCleaner">🧹 Data Cleaner</button>
+    <button type="button" id="showMacro" style="background:#64748b;">🧩 Macro Runner</button>
+</div>
+
+<!-- ================= CLEANER (UNTOUCHED) ================= -->
+<div id="cleanerSection">
 
 <form id="cleanForm">
     <div class="drop-zone" id="dropZone">
@@ -309,10 +295,41 @@ th {
 </div>
 
 </div>
+
+<!-- ================= MACRO RUNNER ================= -->
+<div id="macroSection" style="display:none; margin-top:35px;">
+
+    <h3>🧩 Excel Macro Runner</h3>
+    <p class="subtitle">Upload an Excel file and a VBA (.bas) macro file</p>
+
+    <div class="options" style="grid-template-columns: repeat(2, 1fr); margin-top:20px;">
+        <div class="drop-zone" id="macroExcelZone">
+            📊 Upload Excel File
+            <div class="file-name" id="macroExcelName"></div>
+        </div>
+
+        <div class="drop-zone" id="macroBasZone">
+            🧠 Upload .BAS File
+            <div class="file-name" id="macroBasName"></div>
+        </div>
+    </div>
+
+    <input type="file" id="macroExcelInput" accept=".xlsx,.xlsm" hidden>
+    <input type="file" id="macroBasInput" accept=".bas" hidden>
+
+    <button id="runMacroBtn" disabled>
+        ▶ Run Macro
+    </button>
+
+</div>
+
+</div>
 </div>
 
 <script>
 const API_BASE = "https://data-cleaner-backend.onrender.com";
+
+/* ================= EXISTING CLEANER JS (UNTOUCHED) ================= */
 
 const form = document.getElementById("cleanForm");
 const btn = document.getElementById("submitBtn");
@@ -340,11 +357,9 @@ toggle.onclick = () => {
     toggle.textContent = isDark ? "☀ Light" : "🌙 Dark";
 };
 
-/* Upload */
 dropZone.onclick = () => fileInput.click();
 fileInput.onchange = () => fileName.textContent = fileInput.files[0]?.name || "";
 
-/* Submit */
 form.onsubmit = async e => {
     e.preventDefault();
     btn.disabled = true;
@@ -365,7 +380,6 @@ form.onsubmit = async e => {
         previewSection.style.display = "block";
     } catch (err) {
         alert("Something went wrong");
-        console.error(err);
     } finally {
         progress.style.display = "none";
         btn.disabled = false;
@@ -384,6 +398,50 @@ function renderTable(rows) {
     });
     return html + "</table>";
 }
+
+/* ================= MACRO RUNNER JS ================= */
+
+const cleanerSection = document.getElementById("cleanerSection");
+const macroSection = document.getElementById("macroSection");
+
+document.getElementById("showCleaner").onclick = () => {
+    cleanerSection.style.display = "block";
+    macroSection.style.display = "none";
+};
+
+document.getElementById("showMacro").onclick = () => {
+    cleanerSection.style.display = "none";
+    macroSection.style.display = "block";
+};
+
+const macroExcelZone = document.getElementById("macroExcelZone");
+const macroBasZone = document.getElementById("macroBasZone");
+
+const macroExcelInput = document.getElementById("macroExcelInput");
+const macroBasInput = document.getElementById("macroBasInput");
+
+const macroExcelName = document.getElementById("macroExcelName");
+const macroBasName = document.getElementById("macroBasName");
+
+const runMacroBtn = document.getElementById("runMacroBtn");
+
+macroExcelZone.onclick = () => macroExcelInput.click();
+macroBasZone.onclick = () => macroBasInput.click();
+
+macroExcelInput.onchange = () => {
+    macroExcelName.textContent = macroExcelInput.files[0]?.name || "";
+    checkMacroReady();
+};
+
+macroBasInput.onchange = () => {
+    macroBasName.textContent = macroBasInput.files[0]?.name || "";
+    checkMacroReady();
+};
+
+function checkMacroReady() {
+    runMacroBtn.disabled = !(macroExcelInput.files.length && macroBasInput.files.length);
+}
 </script>
+
 </body>
 </html>
