@@ -53,10 +53,17 @@ body.dark {
     100% { background-position: 0% 50%; }
 }
 
-.container { max-width: 1100px; width: 100%; }
+.container {
+    width: 100%;
+    max-width: 1100px;
+}
 
 .card {
-    background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.97));
+    background: linear-gradient(
+        180deg,
+        rgba(255,255,255,0.85),
+        rgba(255,255,255,0.95)
+    );
     backdrop-filter: blur(14px);
     padding: 45px;
     border-radius: 22px;
@@ -64,10 +71,13 @@ body.dark {
 }
 
 body.dark .card {
-    background: linear-gradient(180deg, rgba(2,6,23,0.9), rgba(2,6,23,0.97));
+    background: linear-gradient(
+        180deg,
+        rgba(2,6,23,0.85),
+        rgba(2,6,23,0.95)
+    );
 }
 
-/* HEADER */
 .header {
     display: flex;
     justify-content: space-between;
@@ -91,35 +101,34 @@ body.dark .card {
     background: var(--drop-bg);
 }
 
-/* MODE SWITCH */
-.mode-switch {
+/* Tabs */
+.tabs {
     display: flex;
-    gap: 10px;
+    gap: 12px;
     margin-top: 25px;
 }
 
-.mode-switch button {
+.tab {
     flex: 1;
-    padding: 12px;
-    border-radius: 12px;
-    border: 1px solid var(--border);
-    background: transparent;
-    color: var(--text-main);
+    padding: 14px;
+    text-align: center;
+    border-radius: 14px;
     cursor: pointer;
+    background: var(--drop-bg);
     font-weight: 700;
 }
 
-.mode-switch button.active {
+.tab.active {
     background: linear-gradient(135deg, #4f46e5, #6366f1);
     color: white;
 }
 
-/* DROP ZONE */
+/* Drop zones */
 .drop-zone {
     margin-top: 25px;
     border: 2px dashed var(--accent);
     border-radius: 18px;
-    padding: 45px;
+    padding: 40px;
     text-align: center;
     cursor: pointer;
     transition: 0.2s;
@@ -134,11 +143,13 @@ body.dark .card {
     font-weight: 600;
 }
 
-input[type=file] { display: none; }
+input[type=file] {
+    display: none;
+}
 
-button.main-btn {
+button {
     width: 100%;
-    margin-top: 25px;
+    margin-top: 30px;
     padding: 15px;
     font-size: 16px;
     font-weight: 700;
@@ -149,7 +160,6 @@ button.main-btn {
     cursor: pointer;
 }
 
-/* PROGRESS */
 .progress-wrap {
     display: none;
     margin-top: 18px;
@@ -174,6 +184,45 @@ button.main-btn {
     from { transform: translateX(-100%); }
     to { transform: translateX(400%); }
 }
+
+/* Preview */
+#previewSection {
+    display: none;
+    margin-top: 40px;
+    border-top: 1px solid var(--border);
+    padding-top: 30px;
+}
+
+.preview-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.table-wrap {
+    max-height: 320px;
+    overflow: auto;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+th, td {
+    padding: 8px;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+}
+
+th {
+    position: sticky;
+    top: 0;
+    background: var(--drop-bg);
+}
 </style>
 </head>
 
@@ -182,128 +231,178 @@ button.main-btn {
 <div class="card">
 
 <div class="header">
-    <div>
-        <div class="title">Excel Data Cleaner</div>
-        <div class="subtitle">Clean files or run macros safely</div>
-    </div>
-    <div class="toggle" id="themeToggle">🌙 Dark</div>
+  <div>
+    <div class="title">Excel Data Cleaner</div>
+    <div class="subtitle">Clean files or run macros safely</div>
+  </div>
+  <div class="toggle" id="themeToggle">🌙 Dark</div>
 </div>
 
-<div class="mode-switch">
-    <button id="cleanTab" class="active">🧹 Clean Excel</button>
-    <button id="macroTab">⚙ Run Macro</button>
+<div class="tabs">
+  <div class="tab active" id="cleanTab">🧹 Clean Excel</div>
+  <div class="tab" id="macroTab">⚙ Run Macro</div>
 </div>
 
 <!-- CLEAN -->
 <div id="cleanSection">
-    <div class="drop-zone" id="cleanDrop">
-        📂 Upload Excel / CSV
-        <div class="file-name" id="cleanName"></div>
-    </div>
-    <input type="file" id="cleanFile" accept=".csv,.xls,.xlsx">
-    <button class="main-btn" id="cleanBtn">Clean & Preview</button>
+  <div class="drop-zone" id="cleanDrop">
+    📂 Upload Excel / CSV
+    <div class="file-name" id="cleanFileName"></div>
+  </div>
+  <input type="file" id="cleanFile" accept=".csv,.xls,.xlsx">
+
+  <button id="cleanBtn">Clean & Preview</button>
+
+  <div class="progress-wrap" id="progress">
+    <div class="progress-bar"><span></span></div>
+  </div>
 </div>
 
 <!-- MACRO -->
 <div id="macroSection" style="display:none;">
-    <div class="drop-zone" id="excelDrop">
-        📄 Upload Excel File
-        <div class="file-name" id="excelName"></div>
-    </div>
-    <input type="file" id="macroExcel" accept=".csv,.xls,.xlsx">
+  <div class="drop-zone" id="excelDrop">
+    📘 Upload Excel File
+    <div class="file-name" id="excelName"></div>
+  </div>
+  <input type="file" id="excelFile" accept=".xls,.xlsx">
 
-    <div class="drop-zone" id="basDrop">
-        🧩 Upload Macro (.bas)
-        <div class="file-name" id="basName"></div>
-    </div>
-    <input type="file" id="macroBas" accept=".bas">
+  <div class="drop-zone" id="basDrop">
+    📜 Upload .bas File
+    <div class="file-name" id="basName"></div>
+  </div>
+  <input type="file" id="basFile" accept=".bas">
 
-    <button class="main-btn" id="runMacroBtn">Run Macro</button>
+  <button id="runMacroBtn">Run Macro</button>
 </div>
 
-<div class="progress-wrap" id="progress">
-    <div class="progress-bar"><span></span></div>
+<!-- PREVIEW -->
+<div id="previewSection">
+  <h3>Preview</h3>
+  <div class="preview-grid">
+    <div>
+      <h4>Before</h4>
+      <div class="table-wrap"><table id="beforeTable"></table></div>
+    </div>
+    <div>
+      <h4>After</h4>
+      <div class="table-wrap"><table id="afterTable"></table></div>
+    </div>
+  </div>
 </div>
 
 </div>
 </div>
 
 <script>
-const CLEAN_API = "https://data-cleaner-backend.onrender.com/clean";
-const MACRO_API = "https://macro-engine-backend.onrender.com/run-macro";
+const API_BASE = "https://data-cleaner-backend.onrender.com";
 
-/* THEME */
+/* Theme */
 const toggle = document.getElementById("themeToggle");
 if (localStorage.theme === "dark") {
-    document.body.classList.add("dark");
-    toggle.textContent = "☀ Light";
+  document.body.classList.add("dark");
+  toggle.textContent = "☀ Light";
 }
 toggle.onclick = () => {
-    document.body.classList.toggle("dark");
-    const dark = document.body.classList.contains("dark");
-    toggle.textContent = dark ? "☀ Light" : "🌙 Dark";
-    localStorage.theme = dark ? "dark" : "light";
+  document.body.classList.toggle("dark");
+  const d = document.body.classList.contains("dark");
+  toggle.textContent = d ? "☀ Light" : "🌙 Dark";
+  localStorage.theme = d ? "dark" : "light";
 };
 
-/* TABS */
+/* Tabs */
 cleanTab.onclick = () => {
-    cleanTab.classList.add("active");
-    macroTab.classList.remove("active");
-    cleanSection.style.display = "block";
-    macroSection.style.display = "none";
-};
-macroTab.onclick = () => {
-    macroTab.classList.add("active");
-    cleanTab.classList.remove("active");
-    cleanSection.style.display = "none";
-    macroSection.style.display = "block";
+  cleanTab.classList.add("active");
+  macroTab.classList.remove("active");
+  cleanSection.style.display = "block";
+  macroSection.style.display = "none";
 };
 
-/* DROP SETUP */
+macroTab.onclick = () => {
+  macroTab.classList.add("active");
+  cleanTab.classList.remove("active");
+  macroSection.style.display = "block";
+  cleanSection.style.display = "none";
+};
+
+/* Drag helpers */
 function setupDrop(zone, input, label) {
-    zone.onclick = () => input.click();
-    zone.ondragover = e => { e.preventDefault(); zone.classList.add("dragover"); };
-    zone.ondragleave = () => zone.classList.remove("dragover");
-    zone.ondrop = e => {
-        e.preventDefault();
-        zone.classList.remove("dragover");
-        input.files = e.dataTransfer.files;
-        label.textContent = input.files[0]?.name || "";
-    };
-    input.onchange = () => label.textContent = input.files[0]?.name || "";
+  zone.onclick = () => input.click();
+  input.onchange = () => label.textContent = input.files[0]?.name || "";
+
+  zone.ondragover = e => {
+    e.preventDefault();
+    zone.classList.add("dragover");
+  };
+  zone.ondragleave = () => zone.classList.remove("dragover");
+  zone.ondrop = e => {
+    e.preventDefault();
+    zone.classList.remove("dragover");
+    input.files = e.dataTransfer.files;
+    label.textContent = input.files[0]?.name || "";
+  };
 }
 
-setupDrop(cleanDrop, cleanFile, cleanName);
-setupDrop(excelDrop, macroExcel, excelName);
-setupDrop(basDrop, macroBas, basName);
+setupDrop(cleanDrop, cleanFile, cleanFileName);
+setupDrop(excelDrop, excelFile, excelName);
+setupDrop(basDrop, basFile, basName);
 
-/* CLEAN */
+/* Clean & Preview */
 cleanBtn.onclick = async () => {
-    if (!cleanFile.files.length) return alert("Upload a file");
-    progress.style.display = "block";
-    const fd = new FormData();
-    fd.append("file", cleanFile.files[0]);
-    await fetch(CLEAN_API, { method: "POST", body: fd });
-    progress.style.display = "none";
-    alert("Clean successful (preview wired already)");
+  if (!cleanFile.files.length) return alert("Upload a file");
+
+  progress.style.display = "block";
+  previewSection.style.display = "none";
+
+  const fd = new FormData();
+  fd.append("file", cleanFile.files[0]);
+
+  const res = await fetch(API_BASE + "/clean-preview", {
+    method: "POST",
+    body: fd
+  });
+
+  const data = await res.json();
+  progress.style.display = "none";
+
+  renderTable(beforeTable, data.before);
+  renderTable(afterTable, data.after);
+  previewSection.style.display = "block";
 };
 
-/* MACRO */
+/* Macro */
 runMacroBtn.onclick = async () => {
-    if (!macroExcel.files.length || !macroBas.files.length)
-        return alert("Upload Excel and .bas file");
+  if (!excelFile.files.length || !basFile.files.length)
+    return alert("Upload Excel and .bas file");
 
-    progress.style.display = "block";
-    const fd = new FormData();
-    fd.append("excel", macroExcel.files[0]);
-    fd.append("macro", macroBas.files[0]);
+  const fd = new FormData();
+  fd.append("excel", excelFile.files[0]);
+  fd.append("macro", basFile.files[0]);
 
-    const res = await fetch(MACRO_API, { method: "POST", body: fd });
-    const data = await res.json();
-
-    progress.style.display = "none";
-    window.location.href = data.download_url;
+  await fetch(API_BASE + "/run-macro", { method: "POST", body: fd });
+  alert("Macro executed successfully");
 };
+
+/* Table renderer */
+function renderTable(table, dataset) {
+  table.innerHTML = "";
+  const tr = document.createElement("tr");
+  dataset.columns.forEach(c => {
+    const th = document.createElement("th");
+    th.textContent = c;
+    tr.appendChild(th);
+  });
+  table.appendChild(tr);
+
+  dataset.rows.forEach(r => {
+    const row = document.createElement("tr");
+    r.forEach(v => {
+      const td = document.createElement("td");
+      td.textContent = v ?? "";
+      row.appendChild(td);
+    });
+    table.appendChild(row);
+  });
+}
 </script>
 </body>
 </html>
