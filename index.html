@@ -259,84 +259,141 @@ th {
 </div>
 
 <script>
-const CLEAN_API = "https://data-cleaner-backend.onrender.com";
-const MACRO_API = "http://localhost:9000/run-macro";
+document.addEventListener("DOMContentLoaded", () => {
 
-const fileInput = document.getElementById("fileInput");
-const macroFile = document.getElementById("macroFile");
-const fileName = document.getElementById("fileName");
-const macroName = document.getElementById("macroName");
+    /* =====================
+       CONSTANTS
+    ===================== */
+    const API_BASE = "https://data-cleaner-backend.onrender.com";
 
-fileInput.onchange = () => fileName.textContent = fileInput.files[0]?.name || "";
-macroFile.onchange = () => macroName.textContent = macroFile.files[0]?.name || "";
+    /* =====================
+       ELEMENTS
+    ===================== */
+    const form = document.getElementById("cleanForm");
+    const dropZone = document.getElementById("dropZone");
+    const fileInput = document.getElementById("fileInput");
+    const fileName = document.getElementById("fileName");
 
-/* Dark mode */
-const toggle = document.getElementById("themeToggle");
-if (localStorage.theme === "dark") {
-    document.body.classList.add("dark");
-    toggle.textContent = "☀ Light";
-}
-toggle.onclick = () => {
-    document.body.classList.toggle("dark");
-    localStorage.theme = document.body.classList.contains("dark") ? "dark" : "light";
-    toggle.textContent = document.body.classList.contains("dark") ? "☀ Light" : "🌙 Dark";
-};
+    const btn = document.getElementById("submitBtn");
+    const progress = document.getElementById("progress");
 
-/* Clean & Preview */
-document.getElementById("cleanForm").onsubmit = async e => {
-    e.preventDefault();
-    const fd = new FormData();
-    fd.append("file", fileInput.files[0]);
-    document.querySelectorAll("input[type=checkbox]").forEach(c => c.checked && fd.append(c.name, true));
+    const previewSection = document.getElementById("previewSection");
+    const previewBefore = document.getElementById("previewBefore");
+    const previewAfter = document.getElementById("previewAfter");
+    const downloadLink = document.getElementById("downloadLink");
 
-    document.getElementById("progress").style.display = "block";
+    const themeToggle = document.getElementById("themeToggle");
 
-    const res = await fetch(`${CLEAN_API}/clean`, { method: "POST", body: fd });
-    const data = await res.json();
+    /* =====================
+       FILE UPLOAD (FIXED)
+    ===================== */
 
-    previewBefore.innerHTML = renderTable(data.preview_before);
-    previewAfter.innerHTML = renderTable(data.preview_after);
-    previewSection.style.display = "block";
-    document.getElementById("progress").style.display = "none";
-};
+    // Make the whole drop zone clickable
+    dropZone.addEventListener("click", () => {
+        fileInput.click();
+    });
 
-/* Clean & Run Macro */
-document.getElementById("runMacroBtn").onclick = async () => {
-    if (!fileInput.files[0] || !macroFile.files[0]) {
-        alert("Upload Excel file and Macro (.bas)");
-        return;
+    // When file selected
+    fileInput.addEventListener("change", () => {
+        if (fileInput.files && fileInput.files.length > 0) {
+            fileName.textContent = fileInput.files[0].name;
+        } else {
+            fileName.textContent = "";
+        }
+    });
+
+    /* =====================
+       DARK MODE (FIXED)
+    ===================== */
+
+    // Apply saved theme on load
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme === "dark") {
+        document.body.classList.add("dark");
+        themeToggle.textContent = "☀ Light";
+    } else {
+        themeToggle.textContent = "🌙 Dark";
     }
 
-    const fd = new FormData();
-    fd.append("excel_file", fileInput.files[0]);
-    fd.append("macro_file", macroFile.files[0]);
+    // Toggle theme
+    themeToggle.addEventListener("click", () => {
+        document.body.classList.toggle("dark");
 
-    document.querySelectorAll("input[type=checkbox]").forEach(c => {
-        fd.append(c.name, c.checked);
+        const isDark = document.body.classList.contains("dark");
+        localStorage.setItem("theme", isDark ? "dark" : "light");
+        themeToggle.textContent = isDark ? "☀ Light" : "🌙 Dark";
     });
 
-    document.getElementById("progress").style.display = "block";
+    /* =====================
+       FORM SUBMIT
+    ===================== */
+    form.addEventListener("submit", async (e) => {
+        e.preventDefault();
 
-    const res = await fetch(MACRO_API, { method: "POST", body: fd });
-    const data = await res.json();
+        if (!fileInput.files || !fileInput.files[0]) {
+            alert("Please upload an Excel file first.");
+            return;
+        }
 
-    window.location.href = data.download_url;
-    document.getElementById("progress").style.display = "none";
-};
+        btn.disabled = true;
+        progress.style.display = "block";
 
-function renderTable(rows) {
-    if (!rows?.length) return "<p>No data</p>";
-    let h = "<table><tr>";
-    Object.keys(rows[0]).forEach(k => h += `<th>${k}</th>`);
-    h += "</tr>";
-    rows.forEach(r => {
-        h += "<tr>";
-        Object.values(r).forEach(v => h += `<td>${v ?? ""}</td>`);
-        h += "</tr>";
+        try {
+            const fd = new FormData();
+            fd.append("file", fileInput.files[0]);
+
+            document.querySelectorAll("input[type=checkbox]").forEach(cb => {
+                if (cb.checked) fd.append(cb.name, "true");
+            });
+
+            const res = await fetch(`${API_BASE}/clean`, {
+                method: "POST",
+                body: fd
+            });
+
+            if (!res.ok) {
+                throw new Error("Server error");
+            }
+
+            const data = await res.json();
+
+            previewBefore.innerHTML = renderTable(data.preview_before);
+            previewAfter.innerHTML = renderTable(data.preview_after);
+            downloadLink.href = API_BASE + data.download_url;
+
+            previewSection.style.display = "block";
+
+        } catch (err) {
+            console.error(err);
+            alert("Something went wrong while processing the file.");
+        } finally {
+            progress.style.display = "none";
+            btn.disabled = false;
+        }
     });
-    return h + "</table>";
-}
+
+    /* =====================
+       TABLE RENDER
+    ===================== */
+    function renderTable(rows) {
+        if (!rows || rows.length === 0) return "<p>No data</p>";
+
+        let html = "<table><tr>";
+        Object.keys(rows[0]).forEach(k => html += `<th>${k}</th>`);
+        html += "</tr>";
+
+        rows.forEach(row => {
+            html += "<tr>";
+            Object.values(row).forEach(v => html += `<td>${v ?? ""}</td>`);
+            html += "</tr>";
+        });
+
+        return html + "</table>";
+    }
+});
 </script>
+
 
 </body>
 </html>
+
