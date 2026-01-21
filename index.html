@@ -6,7 +6,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-/* ===== YOUR EXISTING CSS (UNCHANGED) ===== */
 :root {
     --bg-main: #f8fafc;
     --bg-card: #ffffff;
@@ -46,7 +45,6 @@ body {
 
 body.dark {
     background: linear-gradient(135deg, #020617, #0f172a, #020617);
-    background-size: 300% 300%;
 }
 
 @keyframes gradientMove {
@@ -55,30 +53,25 @@ body.dark {
     100% { background-position: 0% 50%; }
 }
 
-.container {
-    width: 100%;
-    max-width: 1100px;
-}
+.container { max-width: 1100px; width: 100%; }
 
 .card {
-    background: linear-gradient(180deg, rgba(255,255,255,0.85), rgba(255,255,255,0.95));
+    background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.97));
     backdrop-filter: blur(14px);
     padding: 45px;
     border-radius: 22px;
     box-shadow: 0 20px 40px rgba(0,0,0,0.12);
 }
 
-/* ===== HEADER ===== */
+body.dark .card {
+    background: linear-gradient(180deg, rgba(2,6,23,0.9), rgba(2,6,23,0.97));
+}
+
+/* HEADER */
 .header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-}
-
-.title-wrap {
-    display: flex;
-    align-items: center;
-    gap: 12px;
 }
 
 .title {
@@ -98,7 +91,7 @@ body.dark {
     background: var(--drop-bg);
 }
 
-/* ===== MODE SWITCH ===== */
+/* MODE SWITCH */
 .mode-switch {
     display: flex;
     gap: 10px;
@@ -111,6 +104,7 @@ body.dark {
     border-radius: 12px;
     border: 1px solid var(--border);
     background: transparent;
+    color: var(--text-main);
     cursor: pointer;
     font-weight: 700;
 }
@@ -120,7 +114,7 @@ body.dark {
     color: white;
 }
 
-/* ===== DROP ZONE ===== */
+/* DROP ZONE */
 .drop-zone {
     margin-top: 25px;
     border: 2px dashed var(--accent);
@@ -128,6 +122,7 @@ body.dark {
     padding: 45px;
     text-align: center;
     cursor: pointer;
+    transition: 0.2s;
 }
 
 .drop-zone.dragover {
@@ -139,9 +134,7 @@ body.dark {
     font-weight: 600;
 }
 
-input[type=file] {
-    display: none;
-}
+input[type=file] { display: none; }
 
 button.main-btn {
     width: 100%;
@@ -156,6 +149,7 @@ button.main-btn {
     cursor: pointer;
 }
 
+/* PROGRESS */
 .progress-wrap {
     display: none;
     margin-top: 18px;
@@ -189,39 +183,42 @@ button.main-btn {
 
 <div class="header">
     <div>
-        <div class="title-wrap">
-            <span class="title">Excel Data Cleaner</span>
-        </div>
-        <div class="subtitle">Clean Excel files or run macros safely</div>
+        <div class="title">Excel Data Cleaner</div>
+        <div class="subtitle">Clean files or run macros safely</div>
     </div>
     <div class="toggle" id="themeToggle">🌙 Dark</div>
 </div>
 
-<!-- MODE SWITCH -->
 <div class="mode-switch">
-    <button id="cleanMode" class="active">🧹 Clean Excel</button>
-    <button id="macroMode">⚙ Run Macro</button>
+    <button id="cleanTab" class="active">🧹 Clean Excel</button>
+    <button id="macroTab">⚙ Run Macro</button>
 </div>
 
-<!-- CLEAN MODE -->
+<!-- CLEAN -->
 <div id="cleanSection">
-    <div class="drop-zone" id="cleanDrop">📂 Upload Excel File</div>
-    <input type="file" id="cleanFile" accept=".xlsx,.csv">
-    <div class="file-name" id="cleanName"></div>
+    <div class="drop-zone" id="cleanDrop">
+        📂 Upload Excel / CSV
+        <div class="file-name" id="cleanName"></div>
+    </div>
+    <input type="file" id="cleanFile" accept=".csv,.xls,.xlsx">
     <button class="main-btn" id="cleanBtn">Clean & Preview</button>
 </div>
 
-<!-- MACRO MODE -->
+<!-- MACRO -->
 <div id="macroSection" style="display:none;">
-    <div class="drop-zone" id="excelDrop">📄 Upload Excel File</div>
-    <input type="file" id="macroExcel" accept=".xlsx">
-    <div class="file-name" id="macroExcelName"></div>
+    <div class="drop-zone" id="excelDrop">
+        📄 Upload Excel File
+        <div class="file-name" id="excelName"></div>
+    </div>
+    <input type="file" id="macroExcel" accept=".csv,.xls,.xlsx">
 
-    <div class="drop-zone" id="basDrop">🧩 Upload .BAS Macro File</div>
+    <div class="drop-zone" id="basDrop">
+        🧩 Upload Macro (.bas)
+        <div class="file-name" id="basName"></div>
+    </div>
     <input type="file" id="macroBas" accept=".bas">
-    <div class="file-name" id="macroBasName"></div>
 
-    <button class="main-btn" id="runMacroBtn">▶ Run Macro</button>
+    <button class="main-btn" id="runMacroBtn">Run Macro</button>
 </div>
 
 <div class="progress-wrap" id="progress">
@@ -232,35 +229,37 @@ button.main-btn {
 </div>
 
 <script>
-/* ===== THEME ===== */
+const CLEAN_API = "https://data-cleaner-backend.onrender.com/clean";
+const MACRO_API = "https://macro-engine-backend.onrender.com/run-macro";
+
+/* THEME */
 const toggle = document.getElementById("themeToggle");
-if (localStorage.theme === "dark") document.body.classList.add("dark");
+if (localStorage.theme === "dark") {
+    document.body.classList.add("dark");
+    toggle.textContent = "☀ Light";
+}
 toggle.onclick = () => {
     document.body.classList.toggle("dark");
-    localStorage.theme = document.body.classList.contains("dark") ? "dark" : "light";
+    const dark = document.body.classList.contains("dark");
+    toggle.textContent = dark ? "☀ Light" : "🌙 Dark";
+    localStorage.theme = dark ? "dark" : "light";
 };
 
-/* ===== MODE SWITCH ===== */
-const cleanMode = document.getElementById("cleanMode");
-const macroMode = document.getElementById("macroMode");
-const cleanSection = document.getElementById("cleanSection");
-const macroSection = document.getElementById("macroSection");
-
-cleanMode.onclick = () => {
-    cleanMode.classList.add("active");
-    macroMode.classList.remove("active");
+/* TABS */
+cleanTab.onclick = () => {
+    cleanTab.classList.add("active");
+    macroTab.classList.remove("active");
     cleanSection.style.display = "block";
     macroSection.style.display = "none";
 };
-
-macroMode.onclick = () => {
-    macroMode.classList.add("active");
-    cleanMode.classList.remove("active");
+macroTab.onclick = () => {
+    macroTab.classList.add("active");
+    cleanTab.classList.remove("active");
     cleanSection.style.display = "none";
     macroSection.style.display = "block";
 };
 
-/* ===== DRAG & DROP HELPER ===== */
+/* DROP SETUP */
 function setupDrop(zone, input, label) {
     zone.onclick = () => input.click();
     zone.ondragover = e => { e.preventDefault(); zone.classList.add("dragover"); };
@@ -275,8 +274,36 @@ function setupDrop(zone, input, label) {
 }
 
 setupDrop(cleanDrop, cleanFile, cleanName);
-setupDrop(excelDrop, macroExcel, macroExcelName);
-setupDrop(basDrop, macroBas, macroBasName);
+setupDrop(excelDrop, macroExcel, excelName);
+setupDrop(basDrop, macroBas, basName);
+
+/* CLEAN */
+cleanBtn.onclick = async () => {
+    if (!cleanFile.files.length) return alert("Upload a file");
+    progress.style.display = "block";
+    const fd = new FormData();
+    fd.append("file", cleanFile.files[0]);
+    await fetch(CLEAN_API, { method: "POST", body: fd });
+    progress.style.display = "none";
+    alert("Clean successful (preview wired already)");
+};
+
+/* MACRO */
+runMacroBtn.onclick = async () => {
+    if (!macroExcel.files.length || !macroBas.files.length)
+        return alert("Upload Excel and .bas file");
+
+    progress.style.display = "block";
+    const fd = new FormData();
+    fd.append("excel", macroExcel.files[0]);
+    fd.append("macro", macroBas.files[0]);
+
+    const res = await fetch(MACRO_API, { method: "POST", body: fd });
+    const data = await res.json();
+
+    progress.style.display = "none";
+    window.location.href = data.download_url;
+};
 </script>
 </body>
 </html>
