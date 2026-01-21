@@ -31,7 +31,6 @@ body.dark {
     font-family: "Segoe UI", system-ui, sans-serif;
 }
 
-/* Animated background */
 body {
     margin: 0;
     min-height: 100vh;
@@ -46,6 +45,7 @@ body {
 
 body.dark {
     background: linear-gradient(135deg, #020617, #0f172a, #020617);
+    background-size: 300% 300%;
 }
 
 @keyframes gradientMove {
@@ -54,21 +54,23 @@ body.dark {
     100% { background-position: 0% 50%; }
 }
 
-.container { width: 100%; max-width: 1100px; }
+.container {
+    width: 100%;
+    max-width: 1100px;
+}
 
 .card {
-    background: rgba(255,255,255,0.92);
     backdrop-filter: blur(14px);
     padding: 45px;
     border-radius: 22px;
+    background: rgba(255,255,255,0.9);
     box-shadow: 0 20px 40px rgba(0,0,0,0.12);
 }
 
 body.dark .card {
-    background: rgba(2,6,23,0.92);
+    background: rgba(2,6,23,0.95);
 }
 
-/* Header */
 .header {
     display: flex;
     justify-content: space-between;
@@ -85,12 +87,18 @@ body.dark .card {
     width: 28px;
     height: 28px;
     stroke: var(--accent);
-    stroke-width: 1.8;
     fill: rgba(79,70,229,0.08);
 }
 
-.title { font-size: 26px; font-weight: 800; }
-.subtitle { font-size: 14px; color: var(--text-muted); }
+.title {
+    font-size: 26px;
+    font-weight: 800;
+}
+
+.subtitle {
+    font-size: 14px;
+    color: var(--text-muted);
+}
 
 .toggle {
     cursor: pointer;
@@ -99,7 +107,6 @@ body.dark .card {
     background: var(--drop-bg);
 }
 
-/* Upload */
 .drop-zone {
     margin-top: 30px;
     border: 2px dashed var(--accent);
@@ -109,7 +116,14 @@ body.dark .card {
     cursor: pointer;
 }
 
-input[type=file] { display: none; }
+.file-name {
+    margin-top: 10px;
+    font-weight: 600;
+}
+
+input[type=file] {
+    display: none;
+}
 
 .options {
     display: grid;
@@ -131,35 +145,38 @@ button {
     cursor: pointer;
 }
 
-button.secondary {
+.secondary {
     background: linear-gradient(135deg, #16a34a, #22c55e);
 }
 
-/* Advanced */
-.advanced-toggle {
-    margin-top: 25px;
-    cursor: pointer;
-    font-weight: 700;
-    color: var(--accent);
-}
-
-.advanced-box {
+.progress-wrap {
     display: none;
     margin-top: 15px;
-    padding: 20px;
-    border: 1px dashed var(--border);
-    border-radius: 14px;
 }
 
-.hint {
-    font-size: 13px;
-    color: var(--text-muted);
+.progress-bar {
+    height: 10px;
+    background: var(--border);
+    border-radius: 999px;
+    overflow: hidden;
 }
 
-/* Preview */
+.progress-bar span {
+    display: block;
+    height: 100%;
+    width: 30%;
+    background: linear-gradient(90deg, var(--accent), #22d3ee);
+    animation: loading 1.2s infinite;
+}
+
+@keyframes loading {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(400%); }
+}
+
 .table-wrap {
-    margin-top: 10px;
     overflow-x: auto;
+    margin-top: 15px;
     border: 1px solid var(--border);
     border-radius: 12px;
 }
@@ -176,15 +193,8 @@ th, td {
     white-space: nowrap;
 }
 
-.download-btn {
-    display: inline-block;
-    margin-top: 18px;
-    padding: 12px 16px;
-    background: #16a34a;
-    color: white;
-    border-radius: 10px;
-    font-weight: 700;
-    text-decoration: none;
+th {
+    background: var(--drop-bg);
 }
 </style>
 </head>
@@ -202,14 +212,26 @@ th, td {
             </svg>
             <span class="title">Excel Data Cleaner</span>
         </div>
-        <div class="subtitle">Clean CSV & Excel files instantly</div>
+        <div class="subtitle">Clean Excel & Run Macros safely</div>
     </div>
     <div class="toggle" id="themeToggle">🌙 Dark</div>
 </div>
 
 <form id="cleanForm">
-    <div class="drop-zone" id="dropZone">📂 Click to upload Excel</div>
-    <input type="file" id="fileInput" required>
+
+    <div class="drop-zone" id="dropZone">
+        📂 Upload Excel File
+        <div class="file-name" id="fileName"></div>
+    </div>
+
+    <input type="file" id="fileInput" accept=".xlsx,.csv" required>
+
+    <div class="drop-zone" id="macroZone">
+        🧩 Upload Macro (.bas)
+        <div class="file-name" id="macroName"></div>
+    </div>
+
+    <input type="file" id="macroFile" accept=".bas">
 
     <div class="options">
         <label><input type="checkbox" name="trim_spaces"> Trim spaces</label>
@@ -217,62 +239,104 @@ th, td {
         <label><input type="checkbox" name="remove_blank_rows"> Remove blank rows</label>
     </div>
 
-    <button>Clean & Preview</button>
+    <button id="cleanBtn">Clean & Preview</button>
+    <button type="button" class="secondary" id="runMacroBtn">Clean & Run Macro</button>
 
-    <div class="advanced-toggle" id="advToggle">⚙ Advanced / Macro options</div>
-
-    <div class="advanced-box" id="advancedBox">
-        <input type="file" id="macroFile" accept=".bas">
-        <p class="hint">Optional • Runs only on your local machine</p>
-        <button type="button" class="secondary" id="runMacroBtn">
-            Clean & Run Macro
-        </button>
+    <div class="progress-wrap" id="progress">
+        <div class="progress-bar"><span></span></div>
     </div>
 </form>
 
 <div id="previewSection" style="display:none;">
-    <h4>Preview</h4>
+    <h4>Before Cleaning</h4>
     <div class="table-wrap" id="previewBefore"></div>
-    <a id="downloadLink" class="download-btn" target="_blank">⬇ Download</a>
+
+    <h4>After Cleaning</h4>
+    <div class="table-wrap" id="previewAfter"></div>
 </div>
 
 </div>
 </div>
 
 <script>
-const API_BASE = "https://data-cleaner-backend.onrender.com";
+const CLEAN_API = "https://data-cleaner-backend.onrender.com";
 const MACRO_API = "http://localhost:9000/run-macro";
 
-/* Toggle advanced */
-advToggle.onclick = () => {
-    advancedBox.style.display =
-        advancedBox.style.display === "block" ? "none" : "block";
-};
+const fileInput = document.getElementById("fileInput");
+const macroFile = document.getElementById("macroFile");
+const fileName = document.getElementById("fileName");
+const macroName = document.getElementById("macroName");
+
+fileInput.onchange = () => fileName.textContent = fileInput.files[0]?.name || "";
+macroFile.onchange = () => macroName.textContent = macroFile.files[0]?.name || "";
 
 /* Dark mode */
-themeToggle.onclick = () => {
+const toggle = document.getElementById("themeToggle");
+if (localStorage.theme === "dark") {
+    document.body.classList.add("dark");
+    toggle.textContent = "☀ Light";
+}
+toggle.onclick = () => {
     document.body.classList.toggle("dark");
+    localStorage.theme = document.body.classList.contains("dark") ? "dark" : "light";
+    toggle.textContent = document.body.classList.contains("dark") ? "☀ Light" : "🌙 Dark";
 };
 
-/* Macro run */
-runMacroBtn.onclick = async () => {
+/* Clean & Preview */
+document.getElementById("cleanForm").onsubmit = async e => {
+    e.preventDefault();
+    const fd = new FormData();
+    fd.append("file", fileInput.files[0]);
+    document.querySelectorAll("input[type=checkbox]").forEach(c => c.checked && fd.append(c.name, true));
+
+    document.getElementById("progress").style.display = "block";
+
+    const res = await fetch(`${CLEAN_API}/clean`, { method: "POST", body: fd });
+    const data = await res.json();
+
+    previewBefore.innerHTML = renderTable(data.preview_before);
+    previewAfter.innerHTML = renderTable(data.preview_after);
+    previewSection.style.display = "block";
+    document.getElementById("progress").style.display = "none";
+};
+
+/* Clean & Run Macro */
+document.getElementById("runMacroBtn").onclick = async () => {
     if (!fileInput.files[0] || !macroFile.files[0]) {
-        alert("Excel + Macro file required");
+        alert("Upload Excel file and Macro (.bas)");
         return;
     }
 
     const fd = new FormData();
-    fd.append("excel", fileInput.files[0]);
-    fd.append("macro", macroFile.files[0]);
+    fd.append("excel_file", fileInput.files[0]);
+    fd.append("macro_file", macroFile.files[0]);
 
-    try {
-        const res = await fetch(MACRO_API, { method: "POST", body: fd });
-        const data = await res.json();
-        window.location.href = data.download_url;
-    } catch {
-        alert("Macro engine not running (local only)");
-    }
+    document.querySelectorAll("input[type=checkbox]").forEach(c => {
+        fd.append(c.name, c.checked);
+    });
+
+    document.getElementById("progress").style.display = "block";
+
+    const res = await fetch(MACRO_API, { method: "POST", body: fd });
+    const data = await res.json();
+
+    window.location.href = data.download_url;
+    document.getElementById("progress").style.display = "none";
 };
+
+function renderTable(rows) {
+    if (!rows?.length) return "<p>No data</p>";
+    let h = "<table><tr>";
+    Object.keys(rows[0]).forEach(k => h += `<th>${k}</th>`);
+    h += "</tr>";
+    rows.forEach(r => {
+        h += "<tr>";
+        Object.values(r).forEach(v => h += `<td>${v ?? ""}</td>`);
+        h += "</tr>";
+    });
+    return h + "</table>";
+}
 </script>
+
 </body>
 </html>
